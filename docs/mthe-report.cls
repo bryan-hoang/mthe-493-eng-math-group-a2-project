@@ -6,7 +6,7 @@
 \ProcessOptions\relax
 
 \LoadClass[
-    11pt,
+    12pt,
     letterpaper,
     titlepage,
     english,
@@ -20,4 +20,13 @@
 % Change formatting of chapter titles
 \RequirePackage{titlesec}
 
-\titleformat{\chapter}[hang]{\normalfont\bfseries}{\thechapter}{1em}{}
+\titleformat{\chapter}{\normalfont\huge\bfseries}{\thechapter.}{1em}{}
+\titlespacing*{\chapter}{0pt}{24pt}{24pt}
+
+% Don't start chapters on new pages.
+% Source: https://tex.stackexchange.com/a/24067/204377
+\RequirePackage{etoolbox}
+
+\makeatletter
+\patchcmd{\chapter}{\if@openright\cleardoublepage\else\clearpage\fi}{}{}{}
+\makeatother
