@@ -1,0 +1,58 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{authblk}
+\usepackage{stackrel}
+
+\title{Optimization of Computational Runtime in Distributed Computing Systems using Resource Estimation}
+\author{Bryan Hoang, Jack Malloch, Jared McGrath, Edan Parker, and Michael Treagus}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+Distributed computing is an effective way of accomplishing a series of tasks quickly by partitioning and delegating work to workers. A company in Kingston called Kings Distributed Computing works by utilising various public computers as workers and including them in a worker pool. A problem that they face is within a set of workers, the computation power varies drastically. Thus it is difficult to split up the compute jobs in such a way that utilises each worker effectively, and allows jobs to run in the shortest possible time.
+
+\section{Problem Statement}
+
+In a distributed computation system, the time to run a \textit{job} $J = (f, D)$ (where $f: \mathbf{X} \rightarrow \mathbf{Y}$ is the \textit{work function}, and \textit{input data} $D = \{d_1, d_2, ..., d_N\} \subset \mathbf{X}$) given a \textit{worker group} $W = \{W_1, W_2, ..., W_n\}$ of unknown \textit{computation rates} $r = \{r_1, r_2, ..., r_n\}$ is defined as
+
+\[t = t_n + t_b + t_r\]
+
+where
+
+\begin{itemize}
+    \item $t_n$ is the time required from network delays (\textit{network cost})
+    \item $t_b$ is the time required to benchmark workers (\textit{benchmark cost})
+    \item $t_r = \stackrel[i=1]{i=n}{max}(t_{r_i})$ is the time required to process the job using the worker group (\textit{runtime cost})
+    \item $t_{r_i}$ is the time for $W_i$ to process slice $D_i \subset D$
+\end{itemize}
+
+Minimization of $t_n$ can be achieved by selecting workers that minimize the \textit{network cost} based on the worker group's \textit{network topology}. $t_r$ can be minimized by assigning \textit{slices} of size that is proportional to worker \textit{computation rates}. Because workers have unknown computation rates, \textit{computation rate estimates} $\hat{r} = \{\hat{r_1}, \hat{r_2}, ..., \hat{r_n}\}$ can be obtained through \textit{benchmarking}, at the trade-off of increasing $t_b$.
+
+
+\section{Glossary}
+
+\begin{itemize}
+    \item Job Deployer - The initiator of a job in a distributed computing system
+    \item Worker Group - The set of workers $W = \{W_1, W_2, ...\}$ within a given network topology. Workers in a group need not have the same computational resources. Other nodes in the network may not have knowledge of a worker's computational resources
+    \item Worker - A physical machine on the network capable of accepting one or more \textit{slices} of a job, processing them, and returning the results to the job deployer
+    \item Computation Rate - A measure of the computational capabilities available to worker $W_i$. $r_i$ is expressed as a rate of computational units per unit time
+    \item Computation Rate Estimate - An estimation of worker $W_i$'s computation rate, denoted $\hat{r_i}$. There is an error associated with this estimation, so $r_i \neq \hat{r_i}$
+    \item Job - A tuple $J = (f, D)$ consisting of a \textit{work function} $f: \mathbf{X} \rightarrow \mathbf{Y}$ and set of input data $D = \{d_1, d_2, ..., d_N\} \subset \mathbf{X}$
+    \item Benchmark - A job $J_B = (f_B, D_B)$ which is similar in type to an actual job $J = (f, D)$, but simpler in complexity of $f_B$ and smaller in size of input data $D_B$. The purpose of a benchmark job is to provide information about workers such that a computation rate estimate can be obtained
+    \item Slice - A unit of work. Defined as the 2-tuple $(f, d)$, where $f$ is the job's \textit{work function} and $d \in D$ is a \textit{datum}
+    \item Network Topology - The physical layout of agents in a network in relation to a time delay associated with communication between one or more pairs of agents. In this context, this refers to communication time delays between a job deployer and workers.
+    % We don't need to define these terms yet, as they'll be a part of our approach/proposal
+    % \item Orchestrator - Initiates the job of input size $N$ given an arbitrary Worker Group, $W$. For each available worker $W_i$, queries the Results Database for its computation rate estimation, $r_i$.
+    %     \begin{itemize}
+    %         \item If $r_i$ does not exist for any $W_i$, initiates a benchmark
+    %         \item Otherwise (i.e. all rate estimations are present for all workers), assign a slice of size $S_i = N / r_i$ from the job to each worker
+    %     \end{itemize}
+    % \item Benchmark Service - Service responsible for mapping worker $W_i$'s benchmark results to its associated computation rate estimate, $r_i$, and storing the result in the Results Database
+    % \item Results Database - The database that stores the set of worker computation rate estimations
+\end{itemize}
+
+\end{document}
