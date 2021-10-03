@@ -7,9 +7,7 @@
 
 \LoadClass[
     12pt,
-    letterpaper,
-    titlepage,
-    english,
+    twoside,
 ]{report}
 
 % Changing the title of the table of contents section.
@@ -20,13 +18,36 @@
 % Change formatting of chapter titles
 \RequirePackage{titlesec}
 
-\titleformat{\chapter}{\normalfont\huge\bfseries}{\thechapter.}{1em}{}
-\titlespacing*{\chapter}{0pt}{24pt}{24pt}
+\titleformat{\chapter}{\normalfont\bfseries\huge}{\thechapter.}{1em}{}
+\titlespacing*{\chapter}{0pt}{0pt}{24pt}
 
 % Don't start chapters on new pages.
 % Source: https://tex.stackexchange.com/a/24067/204377
 \RequirePackage{etoolbox}
 
 \makeatletter
-\patchcmd{\chapter}{\if@openright\cleardoublepage\else\clearpage\fi}{}{}{}
+% \patchcmd{\chapter}{\if@openright\cleardoublepage\else\clearpage\fi}{}{}{}
+\makeatother
+
+% Re-implementing the matter commands from the book class.
+\makeatletter
+
+\newcommand\frontmatter{%
+    \clearpage
+    \pagenumbering{roman}
+}
+
+\newcommand\mainmatter{%
+    \clearpage
+    \pagenumbering{arabic}
+}
+
+\newcommand\backmatter{%
+    \if@openright
+        \cleardoublepage
+    \else
+        \clearpage
+    \fi
+}
+
 \makeatother

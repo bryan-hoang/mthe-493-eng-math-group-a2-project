@@ -19,26 +19,23 @@
 
 \begin{document}
     \maketitle
-    \pagenumbering{roman}
-
-    % \subfile{chapters/1-executive-summary.tex}
-    % \newpage
-
+    \frontmatter
     \tableofcontents
     \listoffigures
     \listoftables
-
-    \newpage
-
-    \pagenumbering{arabic}
-
+    
+    \mainmatter
     \subfile{chapters/1-introduction}
     \subfile{chapters/2-problem-description}
     \subfile{chapters/3-proposed-design}
     \subfile{chapters/4-project-timeline}
     \subfile{chapters/5-team-load-distribution}
 
-    \clearpage
+    \backmatter
+    \appendix
+    \chapter{Appendix}
+    \Blindtext
+
     \printbibliography[
         title=References,
         heading=bibintoc,
