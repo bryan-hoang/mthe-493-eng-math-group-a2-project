@@ -1,0 +1,166 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{mthe-report}
+
+% A style file to collect package imports and definitions of commands.
+
+%% Preamble:
+
+% To add pdf bookmarks to the report.
+\RequirePackage{bookmark}
+
+% Removes indents from paragraphs.
+\RequirePackage{parskip}
+
+% Adds filler text. i.e., Lorem ipsum
+\RequirePackage{blindtext}
+
+% Set the margins of the report
+\RequirePackage[
+    margin=1in,
+    letterpaper,
+]{geometry}
+
+% Adds ability to change itemize and enumitem environments.
+\RequirePackage{enumitem}
+
+% To set the left margin of bullet points to be flush with the left margin of
+% normal text
+\setlist[itemize]{
+  leftmargin=*
+}
+
+% To set the left margin of numbered items so that text to the right of it is
+% flush with normal text.
+\setlist[enumerate]{
+    leftmargin=0pt
+}
+
+% To draw pictures
+\RequirePackage{tikz}
+\usetikzlibrary{shapes, arrows, positioning}
+
+\tikzset{
+    block/.style={
+        draw, 
+        % fill=blue!20, 
+        rectangle, 
+        minimum height=3em, 
+        minimum width=6em
+    },
+    sum/.style={
+        draw, 
+        % fill=blue!20, 
+        circle, 
+    },
+    input/.style={coordinate},
+    output/.style={coordinate},
+    pinstyle/.style={
+        pin edge={to-,thin,black}
+    }
+}
+
+% To typeset math
+\RequirePackage{amsmath}
+\RequirePackage{amsfonts}
+\RequirePackage{amssymb}
+
+% To typeset units
+\RequirePackage{siunitx}
+
+% When using the '/' symbol in a '\SI' command, keep it as '/' and don't convert it to a fraction.
+\sisetup{per-mode=symbol}
+
+\DeclareSIUnit\decade{decade}
+
+% To be able to add images
+\RequirePackage{graphicx}
+\graphicspath{{img}}
+
+% Sets the default width of all the figures to be the width of the text.
+\setkeys{Gin}{width=\linewidth}
+
+% Adds greater flexibility to positioning figures.
+\RequirePackage{floatrow}
+% Forces captions to be placed above tables.
+\floatsetup[table]{capposition=top}
+
+% Default floating options for figures and tables
+\makeatletter
+\renewcommand*{\fps@figure}{H}
+\renewcommand*{\fps@table}{H}
+\makeatother
+\floatplacement{subfigure}{H}
+
+% tableposition=top - Adds spacing around captions placed above tables
+\RequirePackage[tableposition=top]{caption}
+
+% Allow for captioning sub-figures.
+\RequirePackage{subcaption}
+
+% To set the default subcaption width.
+\captionsetup[subfigure]{width=0.95\textwidth}
+
+% To typeset the table for the TBL chart
+\RequirePackage{tabularx}
+
+% Adds longtable functionality to tabularx.
+\RequirePackage{ltablex}
+
+% To change the orientation of a page to landscape in a mainly portrait pdf document
+\RequirePackage{pdflscape}
+
+% ... Not quite sure what the two packages below do.
+\RequirePackage[utf8]{inputenc}
+\RequirePackage[english]{babel}
+
+% Makes typesetting derivatives and integrals easier.
+\RequirePackage{physics}
+
+% To add references
+\RequirePackage{csquotes}
+\RequirePackage[
+    style=ieee,
+    backend=biber,
+    sorting=none,
+    doi=false,
+    isbn=false,
+    url=true,
+    urldate=long,
+]{biblatex}
+
+\DefineBibliographyStrings{english}{urlseen = {Last accessed:},}
+
+% To remove (). at the beginning of references with no date.
+\RequirePackage{xpatch}
+\xpatchbibdriver{online}
+  {\printtext[parens]{\usebibmacro{date}}}
+  {\iffieldundef{year}{}{\printtext[parens]{\usebibmacro{date}}}}
+  {}{}
+
+\DefineBibliographyStrings{english}{url = [Online]\adddot\addspace Available at,}
+\DeclareFieldFormat{urldate}{\bibstring{urlseen}\space#1}
+
+% Silences a warning about references wrapping.
+\RequirePackage[final]{microtype}
+
+%% LAST PACKAGES TO LOAD %%
+
+% To allow for a main .tex file to include content from other .tex files.
+\RequirePackage{subfiles}
+
+% To create hyperlinks.
+\RequirePackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    allcolors=blue,
+    bookmarksopen=true
+}
+
+% To auto center figures.
+\makeatletter
+\g@addto@macro\@floatboxreset\centering
+\makeatother
+
+% To add semantic meaning to the texttt command.
+\newcommand{\code}{\texttt}
+
