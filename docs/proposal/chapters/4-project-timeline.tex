@@ -4,5 +4,29 @@
 \begin{document}
     \chapter{Project Timeline}
     \label{ch:project-timeline}
-    % TODO: Create Gantt chart using pgfgantt package.
+    \begin{figure}
+        \begin{ganttchart}[
+                hgrid,
+                vgrid,
+                % title label font=\tiny,
+                % bar label font=\tiny,
+                % group label font=\tiny,
+                % milestone label font=\tiny,
+                % today label font=\tiny,
+                % vrule label font=\tiny,
+                time slot format=isodate,
+                expand chart=\textwidth,
+            ]{2021-10-11}{2021-12-5}
+            \gantttitlecalendar{year, week=5} \\
+            \ganttgroup{Project Proposal}{2021-10-11}{2021-10-25} \\
+            \ganttbar{Draft Proposal}{2021-10-11}{2021-10-20} \\
+            \ganttlinkedmilestone{Review with co-supervisors}{2021-10-20} \\
+            \ganttlinkedbar{Refine}{2021-10-21}{2021-10-25} \\
+            \ganttlinkedmilestone{Submit Proposal}{2021-10-25} \\
+            \ganttgroup{Modelling System}{2021-10-11}{2021-10-11} \\
+            \ganttbar{Final Task}{2021-10-11}{2021-10-11} \\
+            \ganttmilestone{Midterm Oral Presentation}{2021-11-21} \\
+        \end{ganttchart}
+        \caption{Gantt Chart}
+    \end{figure}
 \end{document}

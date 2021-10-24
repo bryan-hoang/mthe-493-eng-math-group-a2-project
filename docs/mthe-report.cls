@@ -8,12 +8,16 @@
 \LoadClass[
     12pt,
     % twoside,
-]{report}
+]{memoir}
 
 % Changing the title of the table of contents section.
 \RequirePackage[english]{babel}
 
 \addto\captionsenglish{\renewcommand*\contentsname{Table Of Contents}}
+
+\setlength{\cftbeforechapterskip}{0pt plus 0pt}
+\renewcommand*{\insertchapterspace}{}
+\setlength{\cftbeforesectionskip}{0pt plus 0pt}
 
 % Change formatting of chapter titles
 \RequirePackage{titlesec}
@@ -26,28 +30,10 @@
 \RequirePackage{etoolbox}
 
 \makeatletter
-% \patchcmd{\chapter}{\if@openright\cleardoublepage\else\clearpage\fi}{}{}{}
+\patchcmd{\chapter}{\if@openright\cleardoublepage\else\clearpage\fi}{}{}{}
 \makeatother
 
-% Re-implementing the matter commands from the book class.
-\makeatletter
-
-\newcommand\frontmatter{%
-    \clearpage
-    \pagenumbering{roman}
-}
-
-\newcommand\mainmatter{%
-    \clearpage
-    \pagenumbering{arabic}
-}
-
-\newcommand\backmatter{%
-    \if@openright
-        \cleardoublepage
-    \else
-        \clearpage
-    \fi
-}
-
-\makeatother
+% \renewcommand*{\bibsection}{%
+%     \chapter*{\bibname}\addcontentsline{toc}{chapter}{\bibname}
+%     \SingleSpacing%
+% }

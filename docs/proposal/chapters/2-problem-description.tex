@@ -5,158 +5,158 @@
     \chapter{Problem Description}
     \label{ch:problem-description}
     We introduce a \textit{network} as a system of heterogeneous units, each with a capacity to produce or utilize some amount of a quantifiable resource on behalf of other units in the network.
-    
+
     A quantity of system resources take values in $\mathbb{T} \subseteq \mathbb{R}_{\geq 0}$, and are described in relation to a \textit{state space} $\mathbb{X}$ consisting of sequences of finite length, and a set of \textit{work functions} which operate on the state space:
 
     \begin{equation*}
         \mathbb{W} = \{f: \mathbb{X} \rightarrow \mathbb{X}\}
     \end{equation*}
-    
+
     To quantify the size of a datum, we introduce a norm on $\mathbb{X}$, denoted $\norm{\cdot}_{\mathbb{X}}$, given by
-    
+
     \begin{equation*}
         \norm{\{x_1, x_2, ..., x_N\}}_{\mathbb{X}} = N, \forall \{x_1, x_2, ..., x_N\} \in \mathbb{X}
     \end{equation*}
-    
+
     \textit{Resource production rate}, $R$, is a time-varying stochastic random variable that represents the ability of a unit to produce or utilize a quantity of resources $x \in \mathbb{T}$ per unit time:
     \begin{align*}
         R \colon \mathbb{R} &\to \mathbb{T} \\
-        t &\mapsto x
+        t                   &\mapsto x
     \end{align*}
-    
+
     When the argument of $R$ is omitted, it is taken to be $R(t)$ for a given $t \in \mathbb{R}$.
-    
+
     \textit{Resource cost rate}, $C \in \mathbb{R}_{\geq 0}$, is the price that a unit will charge for production per unit of resources. This rate is fixed, i.e. does not vary with time or other network conditions.
-    
-    The network structure can be modelled as a directed graph $\mathbf{G} = (\mathbf{V}, \mathbf{A})$. 
-    
+
+    The network structure can be modelled as a directed graph $\mathbf{G} = (\mathbf{V}, \mathbf{A})$.
+
     Nodes $\mathbf{V} = (v_1, v_2, ..., v_n)$ represent the units in the network. Denote by $\mathbf{R} = (R_1, R_2, ..., R_n)$ and $\mathbf{C} = (c_1, c_2, ..., c_n)$ the associated resource production and cost rates of nodes, respectively.
-    
+
     The adjacency matrix represents the communication structure of the network, and is given by
     \begin{align*}
         \mathbf{A} \colon \mathbb{R} &\to \mathbb{R}^{n \times n}_{\geq 0} \\
-        t &\mapsto A
+        t                            &\mapsto A
     \end{align*}
     An edge $\mathbf{A}_{i,j}$ is a time-varying stochastic random variable with finite mean representing the \textit{communication cost} from $v_i$ to $v_j$. The communication cost is proportional to an amount of data transferred between nodes. When the argument of $\mathbf{A}$ is omitted, it is taken to be $\mathbf{A}(t)$ for a given $t \in \mathbb{R}$.
-    
+
     Some assumptions made about $\mathbf{A}$ in this model: for all $i, j \in \{1, 2, ..., n\}$,
-    
+
     \begin{enumerate}
         \item If $\mathbf{A}_{i,j} = 0$, there is no communication from $v_i$ to $v_j$
         \item If $\mathbf{A}_{i,j} > 0$, then $\mathbf{A}_{j,i} > 0$ (communication is always bidirectional)
         \item We take $\mathbf{A}_{i,i} = 0$ (no self-communication)
         \item The network communication structure is stable; that is, if there exists $T \in \mathbb{R}$ such that $\mathbf{A}_{i,j}(T) > 0$, then $\mathbf{A}_{i,j}(t) > 0$ for all $t \in \mathbb{R}$
     \end{enumerate}
-    
+
     A \textit{job} is the pairing of a work function and a finite tuple of \textit{input data} from which job \textit{results} can be derived. Formally, a job is \\
-    
+
     \centerline{\(J = (f, D)\) where \(f \in \mathbb{W}\) and \(D = (d_1, d_2, ..., d_N) \subset \mathbb{X}\)}
-    
+
     and the tuple of results is
-    
+
     \centerline{\(Y = (f(d) \mid d \in D ) \subset \mathbb{X}\)}
-    
-    A \textit{job deployer} is a node that employs some or all of the adjacent nodes to perform a job. It is assumed that all units on the network are capable of deploying and executing a job. 
-    
+
+    A \textit{job deployer} is a node that employs some or all of the adjacent nodes to perform a job. It is assumed that all units on the network are capable of deploying and executing a job.
+
     Job deployment proceeds as follows: denote by $V_i$ the set of nodes adjacent to $v_i$, given by
-    
+
     \begin{equation*}
         V_i = \{V_j \in V \mid \mathbf{A}_{i,j} > 0\}
     \end{equation*}
-    
+
     The job is deployed to a subset of \textit{workers}, $E \subseteq V_i$, of adjacent nodes by partitioning the input data into disjoint subsets such that
-    
+
     \begin{equation*}
         D = \bigcup\limits_{j \mid v_j \in E} D_j
     \end{equation*}
-    
+
     This partitions $J$ into a set of \textit{subjobs} $\overline{J} = \{J_j = (f, D_j) \mid v_j \in E\}$, such that $v_j$ is assigned subjob $J_j$. The results of the subjob $Y_j = (f(d) \mid d \in D_j)$ are returned to $v_i$ upon completion. Note that subjobs are also jobs, and are assumed to be executable independently of one another
-    
+
     Some performance oriented cost functions are defined as follows: given network $\mathbf{G} = (\mathbf{V}, \mathbf{A})$, and job $J = (f, D)$
-    
+
     \begin{itemize}
         \item The \textit{execution cost} of the work function $f$ on a datum $d \in D$ to      produce $f(d) \in Y$ is a function $\xi_E$
-            \begin{align*}
-                \xi_E \colon \mathbb{W} \cross \mathbb{X} &\to \mathbb{T} \\
-                (f, d) &\mapsto c
-            \end{align*}
-        
+              \begin{align*}
+                  \xi_E \colon \mathbb{W} \times \mathbb{X} &\to \mathbb{T} \\
+                  (f, d)                                    &\mapsto c
+              \end{align*}
+
         \item \textit{Total execution cost} of job $J$ is the function $\xi_{TE}$
-            \begin{align*}
-                \xi_{TE} \colon \mathbb{W} \cross D \subset \mathbb{X} &\to \mathbb{T} \\
-                (f, D) &\mapsto \sum\limits_{d \in D} \xi_E(f, d)
-            \end{align*}
-        
+              \begin{align*}
+                  \xi_{TE} \colon \mathbb{W} \times D \subset \mathbb{X} &\to \mathbb{T}                            \\
+                  (f, D)                                                 &\mapsto \sum\limits_{d \in D} \xi_E(f, d)
+              \end{align*}
+
         \item \textit{Network deploy cost} is the network cost of deploying job $J$ from $v_i$ to $v_j$ given $\mathbf{A}$ is
-            \begin{equation*}
-                \gamma_{ND}(J, j, i) = \mathbf{A}_{i,j} \sum\limits_{d \in D_j} \norm{d}_{\mathbb{X}}
-            \end{equation*}
-            The above equation assumes that the network cost of transmitting the work function is negligible relative to the size of the input data. Because $\mathbf{A}_{i,j}$ is a random variable, $\gamma_{ND}$ is stochastic in nature.
-        
+              \begin{equation*}
+                  \gamma_{ND}(J, j, i) = \mathbf{A}_{i,j} \sum\limits_{d \in D_j} \norm{d}_{\mathbb{X}}
+              \end{equation*}
+              The above equation assumes that the network cost of transmitting the work function is negligible relative to the size of the input data. Because $\mathbf{A}_{i,j}$ is a random variable, $\gamma_{ND}$ is stochastic in nature.
+
         \item \textit{Network result cost} is the network cost of receiving results of job $J$ from     $v_j$ to $v_i$ given $\mathbf{A}$ is
-            \begin{equation*}
-                \gamma_{NR}(J, j, i) = \mathbf{A}_{j,i} \sum\limits_{d \in D} \norm{f(d)}_{\mathbb{X}}
-            \end{equation*}
-            Because $\mathbf{A}_{j,i}$ is a random variable, $\gamma_{NR}$ is stochastic in nature.
-            
+              \begin{equation*}
+                  \gamma_{NR}(J, j, i) = \mathbf{A}_{j,i} \sum\limits_{d \in D} \norm{f(d)}_{\mathbb{X}}
+              \end{equation*}
+              Because $\mathbf{A}_{j,i}$ is a random variable, $\gamma_{NR}$ is stochastic in nature.
+
         \item Given the preceding two definitions, the \textit{network cost} of deploying job $J$ from $v_i$ to $v_j$ and receiving the results  given $\mathbf{A}$ is
-            \begin{equation*}
-                \gamma_N(J, j, i) = \gamma_{ND}(J, j, i) + \gamma_{NR}(J, j, i)
-            \end{equation*}
-            Because $\gamma_{ND}$ and $\gamma_{NR}$ are stochastic in nature, so it $\gamma_N$.
+              \begin{equation*}
+                  \gamma_N(J, j, i) = \gamma_{ND}(J, j, i) + \gamma_{NR}(J, j, i)
+              \end{equation*}
+              Because $\gamma_{ND}$ and $\gamma_{NR}$ are stochastic in nature, so it $\gamma_N$.
     \end{itemize}
-    
+
     When we are additionally given production rates $\mathbf{R}$, cost rates $\mathbf{C}$, a job deployer $v_i \in \mathbf{V}$, workers $E \subseteq V_i$, and subjobs $\overline{J} = \{J_j \mid v_j \in E\}$, we can define the following cost functions:
-    
+
     \begin{itemize}
         \item \textit{Total network cost} when given $\mathbf{A}$ is
-            \begin{align*}
-                \gamma_T(\overline{J}, E, i) &= \sum_{j \mid v_j \in E} \gamma_N(J_j, j, i) \\
-                &= \sum_{j \mid v_j \in E} \left(
-                    \mathbf{A}_{i,j} \sum\limits_{d \in D_j} \norm{d}_{\mathbb{X}} + \mathbf{A}_{j,i} \sum\limits_{y \in Y_j} \norm{y}_{\mathbb{X}}
-                \right)
-            \end{align*}
-            Note that $\gamma_T$ is stochastic in nature.
-            
+              \begin{align*}
+                  \gamma_T(\overline{J}, E, i) &= \sum_{j \mid v_j \in E} \gamma_N(J_j, j, i) \\
+                                               &= \sum_{j \mid v_j \in E} \left(
+                  \mathbf{A}_{i,j} \sum\limits_{d \in D_j} \norm{d}_{\mathbb{X}} + \mathbf{A}_{j,i} \sum\limits_{y \in Y_j} \norm{y}_{\mathbb{X}}
+                  \right)
+              \end{align*}
+              Note that $\gamma_T$ is stochastic in nature.
+
         \item The \textit{completion time}, denoted $t_C$, is the maximal sum of expected subjob execution time and expected network costs. Formally,
-    
-            \begin{align*}
-                t_C &= \max_{j \mid v_j \in E}
-                \left(
-                    \mathbb{E}\left[ \frac{\xi_{TE}(J_j, j, i)}{R_j} \right]
-                    + \mathbb{E}\left[ \gamma_N(J_j, j, i) \right]
-                \right) \\
-                &= \max_{j \mid v_j \in E}
-                \left(
-                    \mathbb{E}\left[ \sum\limits_{d \in D_j} \frac{\xi(f, d)}{R_j}\right]
-                    + \mathbb{E}\left[ 
-                    \mathbf{A}_{i,j} \sum\limits_{d \in D_j} \norm{d}_{\mathbb{X}} + \mathbf{A}_{j,i} \sum\limits_{y \in Y_j} \norm{y}_{\mathbb{X}}
-                    \right]
-                \right)
-            \end{align*}
-            
+
+              \begin{align*}
+                  t_C &= \max_{j \mid v_j \in E}
+                  \left(
+                  \mathbb{E}\left[ \frac{\xi_{TE}(J_j, j, i)}{R_j} \right]
+                  + \mathbb{E}\left[ \gamma_N(J_j, j, i) \right]
+                  \right)                        \\
+                      &= \max_{j \mid v_j \in E}
+                  \left(
+                  \mathbb{E}\left[ \sum\limits_{d \in D_j} \frac{\xi(f, d)}{R_j}\right]
+                  + \mathbb{E}\left[
+                      \mathbf{A}_{i,j} \sum\limits_{d \in D_j} \norm{d}_{\mathbb{X}} + \mathbf{A}_{j,i} \sum\limits_{y \in Y_j} \norm{y}_{\mathbb{X}}
+                      \right]
+                  \right)
+              \end{align*}
+
         \item \textit{Resource cost}, denoted $c_R$, is the sum of costs arising from the use of worker resource production, based on total execution costs of subjobs and resource cost rates. $c_R$ is given by
-            \begin{equation*}
-                c_R(\overline{J}, E, \mathbf{C}) = \sum_{j \mid v_j \in E} C_j \cdot \xi_{TE}(J_j)
-            \end{equation*}
+              \begin{equation*}
+                  c_R(\overline{J}, E, \mathbf{C}) = \sum_{j \mid v_j \in E} C_j \cdot \xi_{TE}(J_j)
+              \end{equation*}
     \end{itemize}
-    
+
     For a given network $\mathbf{G} = (\mathbf{V}, \mathbf{A})$ and job $J$, the particular selection of workers $E$ and subjob partition $\overline{J}$ allows for a mechanism of control over completion time $t_C$ and resource cost $c_R$. The uncertainty present in adjacency matrix $\mathbf{A}$ and production rates $\mathbf{R}$ allow us to formulate the manipulation of $t_C$ and $c_R$ as a stochastic optimization problem. It is of particular interest to optimize for these quantities under various circumstances, such as
-    
+
     \begin{itemize}
         \item Minimization of completion time $t_C$ with unconstrained resource cost $c_R$
         \item Minimization of resource cost $c_R$ with unconstrained completion time $t_C$ (although this is trivial, since values in question are deterministic)
         \item Minimization of completion time $t_C$ for a fixed resource cost $c_R$
         \item Minimization of resource cost $c_R$ for a fixed completion time $t_C$
     \end{itemize}
-    
+
     The last set of circumstances will be the focus of the subsequent application.
 
     \section{Application}
     % In the application section, apply the formal math from above in the specific context of our distributed computing problem (based on intro/background section etc.)
-    
+
     \textit{Distributed computing} on a computer network can be modelled using the notion of a network described above. A computer network can be configured in either a \textit{decentralized} or \textit{centralized} way. In a decentralized network, edges can be created between any two nodes. There is no controlling node or any central authority which dictates the flow of information through the entire network.
-    
+
     In centralized computing, a network is configured with a hierarchical edge structure and the network is controlled at a central authoritative node which directly connects to all other nodes. In distributed computing, this central authority is called an \textit{orchestrator}. The orchestrator has a direct connection with each node on the network and when acting as a \textit{job deployer} it can direct and control distributed computing tasks.
 
     \section{Triple Bottom Line Factors}

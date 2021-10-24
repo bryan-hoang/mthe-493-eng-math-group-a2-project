@@ -26,7 +26,7 @@
 % To set the left margin of bullet points to be flush with the left margin of
 % normal text
 \setlist[itemize]{
-  leftmargin=*
+    leftmargin=*
 }
 
 % To set the left margin of numbered items so that text to the right of it is
@@ -41,28 +41,33 @@
 
 \tikzset{
     block/.style={
-        draw, 
-        % fill=blue!20, 
-        rectangle, 
-        minimum height=3em, 
-        minimum width=6em
-    },
+            draw,
+            % fill=blue!20,
+            rectangle,
+            minimum height=3em,
+            minimum width=6em
+        },
     sum/.style={
-        draw, 
-        % fill=blue!20, 
-        circle, 
-    },
+            draw,
+            % fill=blue!20,
+            circle,
+        },
     input/.style={coordinate},
     output/.style={coordinate},
     pinstyle/.style={
-        pin edge={to-,thin,black}
-    }
+            pin edge={to-,thin,black}
+        }
 }
 
 % To typeset math
 \RequirePackage{amsmath}
 \RequirePackage{amsfonts}
 \RequirePackage{amssymb}
+\RequirePackage{mathtools}
+
+% https://tex.stackexchange.com/a/43009/204377
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}%
 
 % To typeset units
 \RequirePackage{siunitx}
@@ -79,10 +84,18 @@
 % Sets the default width of all the figures to be the width of the text.
 \setkeys{Gin}{width=\linewidth}
 
+% To auto center figures. Source: https://tex.stackexchange.com/a/2652/204377
+\makeatletter
+\g@addto@macro\@floatboxreset\centering
+\makeatother
+
 % Adds greater flexibility to positioning figures.
-% \RequirePackage{floatrow}
-% Forces captions to be placed above tables.
-% \floatsetup[table]{capposition=top}
+\let\newfloat\undefined
+\RequirePackage{floatrow}
+
+% Forces captions to be placed appropriately.
+\floatsetup[table]{capposition=top}
+\floatsetup[figure]{capposition=bottom}
 
 % Default floating options for figures and tables
 \makeatletter
@@ -97,24 +110,23 @@
 % Allow for captioning sub-figures.
 \RequirePackage{subcaption}
 
-% To set the default subcaption width.
-\captionsetup[subfigure]{width=0.95\textwidth}
-
 % To typeset the table for the TBL chart
 \RequirePackage{tabularx}
 
 % Adds longtable functionality to tabularx.
 \RequirePackage{ltablex}
 
-% To change the orientation of a page to landscape in a mainly portrait pdf document
+% To change the orientation of a page to landscape in a mainly portrait pdf
+% document
 \RequirePackage{pdflscape}
 
 % ... Not quite sure what the two packages below do.
 \RequirePackage[utf8]{inputenc}
 \RequirePackage[english]{babel}
 
-% Makes typesetting derivatives and integrals easier.
-\RequirePackage{physics}
+% A LATEX package to ease the writing of differential coefficients in all their
+% variety.
+\RequirePackage{diffcoeff}
 
 % To add references
 \RequirePackage{csquotes}
@@ -133,9 +145,9 @@
 % To remove (). at the beginning of references with no date.
 \RequirePackage{xpatch}
 \xpatchbibdriver{online}
-  {\printtext[parens]{\usebibmacro{date}}}
-  {\iffieldundef{year}{}{\printtext[parens]{\usebibmacro{date}}}}
-  {}{}
+{\printtext[parens]{\usebibmacro{date}}}
+{\iffieldundef{year}{}{\printtext[parens]{\usebibmacro{date}}}}
+{}{}
 
 \DefineBibliographyStrings{english}{url = [Online]\adddot\addspace Available at,}
 \DeclareFieldFormat{urldate}{\bibstring{urlseen}\space#1}
@@ -143,24 +155,23 @@
 % Silences a warning about references wrapping.
 \RequirePackage[final]{microtype}
 
+% Provides the `ganttchart' environment, which draws a Gantt chart within a
+% TikZ picture.
+\RequirePackage{pgfgantt}
+
 %% LAST PACKAGES TO LOAD %%
 
-% To allow for a main .tex file to include content from other .tex files.
+% To allow for a `main.tex' file to include content from other `.tex' files.
 \RequirePackage{subfiles}
 
 % To create hyperlinks.
 \RequirePackage{hyperref}
 \hypersetup{
+    draft=false,
     colorlinks=true,
     allcolors=blue,
-    bookmarksopen=true
+    bookmarksopen=true,
 }
-
-% To auto center figures.
-\makeatletter
-\g@addto@macro\@floatboxreset\centering
-\makeatother
 
 % To add semantic meaning to the texttt command.
 \newcommand{\code}{\texttt}
-

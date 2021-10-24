@@ -4,15 +4,15 @@
 \begin{document}
     \chapter{Introduction/Background}
     \label{ch:introduction}
-    
+
     Edge computing is an emerging paradigm for IoT and data analytics systems. By performing a majority of computation on edge devices, these systems can remain responsive and durable as they are scaled. With global industry embracing smart architecture and IoT processes, the edge-computing market is predicted to grow to \$43.4 billion by 2027, by which time 75\% of enterprise-generated data will be created and processed at the edge.
-    
+
     (NOTE: The following is from Sara's document. I think we should use this and adapt it as a intro/background)~\cite{noauthor_edge_2020}
-    
+
     Edge computing is proving to be a successful paradigm for dealing with the computational challenges raised by the era of the Internet of Everything (IoE). With the world embracing smart architectures, including smart cities, smart grids, smart homes, etc., it is expected that 41 billion IoT devices will be online by 2027, generating around 800 zettabytes of data [1]. This will place a heavy burden on backhaul links and raise security/privacy concerns. Thus, it is anticipated that edge servers and end devices, such as smart phones, cameras, drones, etc., will perform 90\% of analytics locally [2].
-    
+
     Machine Learning (ML) techniques have shown superior performance in many data analytics applications, such as forecasting, image classification, clustering, etc. Therefore, researchers have turned their attention to deploying ML models on end devices as part of the Edge Artificial Intelligence (Edge AI). Performing ML in a distributed manner (a.k.a. distributed learning (DL)) at the edge has gained significant momentum lately. DL enables the training of a global learning model from the local models that are concurrently trained at multiple mobile edge devices. DL branches into two major practical settings, namely the federated and parallelized learning. Both scenarios involve the presence of a governing node, known as the orchestrator, and a number of helping nodes known as learners. The orchestrator aims to train the global model by running local training cycles of the same model at the learners and aggregating their learning outcomes. The difference between the two scenarios lies in the location of the data. In federated learning (FL), different datasets are already stored at the different learners. In parallelized learning (PL), the orchestrator initially possesses the entire dataset and decides to distribute fragments of it to learners for learning purposes.
-    
+
     In DL, heterogeneity among learners poses a major problem. Such heterogeneity refers to the different computation and communication characteristics of the recruited learners. Failure to address system heterogeneity limits DL to the performance of its weakest learner. In order to resolve this issue, some schemes allocate different amounts of data to each learner, while others allow learners to perform variable number of local iterations [3] [4]. The latter approach can reduce the training accuracy since it increases the discrepancy or ’staleness’ among the gradients of each learner. Thus, in order to reduce staleness, we implement a resource allocation scheme that addresses system heterogeneity in DL by allocating different amount of data to each learner. The details and methodology of this scheme are provided below.
 
 \end{document}
