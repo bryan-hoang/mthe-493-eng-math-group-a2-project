@@ -7,7 +7,7 @@
 
 \LoadClass[
     12pt,
-    % twoside,
+    oneside,
 ]{memoir}
 
 % Changing the title of the table of contents section.
@@ -37,3 +37,7 @@
 %     \chapter*{\bibname}\addcontentsline{toc}{chapter}{\bibname}
 %     \SingleSpacing%
 % }
+
+\setlength{\parindent}{0em}
+\setlength{\parskip}{1em}
+\checkandfixthelayout[nearest]
