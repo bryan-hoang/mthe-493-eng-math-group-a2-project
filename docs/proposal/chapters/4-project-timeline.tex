@@ -1,31 +1,88 @@
 \documentclass[../mthe-493-project-proposal.tex]{subfiles}
 
+\ganttset{
+    title label font=\tiny,
+    bar label font=\tiny,
+    group label font=\tiny,
+    milestone label font=\itshape\tiny,
+    today label font=\tiny,
+    vrule label font=\tiny,
+    expand chart=\textwidth,
+    calendar week text = {W\currentweek{}},
+    y unit chart=0.75cm,
+    hgrid,
+    vgrid,
+    time slot format=isodate,
+}
+
 % Project Timeline (in both Tabular and Gantt Chart formats)
 \begin{document}
     \chapter{Project Timeline}
     \label{ch:project-timeline}
     \begin{figure}
-        \begin{ganttchart}[
-                hgrid,
-                vgrid,
-                % title label font=\tiny,
-                % bar label font=\tiny,
-                % group label font=\tiny,
-                % milestone label font=\tiny,
-                % today label font=\tiny,
-                % vrule label font=\tiny,
-                time slot format=isodate,
-                expand chart=\textwidth,
-            ]{2021-10-11}{2021-12-5}
-            \gantttitlecalendar{year, week=5} \\
+        \begin{ganttchart}{2021-10-11}{2021-12-5}
+            \gantttitlecalendar{
+                year,
+                week=5,
+            } \\
             \ganttgroup{Project Proposal}{2021-10-11}{2021-10-25} \\
             \ganttbar{Draft Proposal}{2021-10-11}{2021-10-20} \\
             \ganttlinkedmilestone{Review with co-supervisors}{2021-10-20} \\
             \ganttlinkedbar{Refine}{2021-10-21}{2021-10-25} \\
             \ganttlinkedmilestone{Submit Proposal}{2021-10-25} \\
-            \ganttgroup{Modelling System}{2021-10-11}{2021-10-11} \\
-            \ganttbar{Final Task}{2021-10-11}{2021-10-11} \\
-            \ganttmilestone{Midterm Oral Presentation}{2021-11-21} \\
+            \ganttgroup{Modelling System}{2021-10-26}{2021-11-21} \\
+            \ganttbar[name=rpdcm]{Research Previous Distributed Computing Models}{2021-10-26}{2021-11-1} \\
+            \ganttbar{Research Relevant Mathematical Topics}{2021-10-26}{2021-11-1} \\
+            \ganttlinkedbar[name=dm]{Develop Model}{2021-11-3}{2021-11-15} \\
+            \ganttlinkedmilestone{Review Model with co-supervisors}{2021-11-15} \\
+            \ganttlinkedbar{Update Model (as required)}{2021-11-16}{2021-11-21} \\
+            \ganttgroup{Midterm Oral Presentation}{2021-11-13}{2021-11-21} \\
+            \ganttbar{Create Presentation}{2021-11-13}{2021-11-18} \\
+            \ganttlinkedbar{Refine Presentation}{2021-11-19}{2021-11-21} \\
+            \ganttlinkedmilestone{Presentation}{2021-11-21} \\
+            \ganttgroup{Implementation}{2021-11-22}{2021-12-5} \\
+            \ganttbar{Implement model of system}{2021-11-22}{2021-12-5}
+            \ganttlink{rpdcm}{dm}
+        \end{ganttchart}
+        \caption{Gantt Chart}
+    \end{figure}
+
+    \begin{figure}
+        \begin{ganttchart}{2022-1-10}{2022-4-10}
+            \gantttitlecalendar{
+                year,
+                week=13,
+            } \\
+            \ganttgroup{Implementation}{2022-1-10}{2022-1-23} \\
+            \ganttbar{Implement model of system}{2022-1-10}{2022-1-17} \\
+            \ganttlinkedmilestone{Review implementation with co-supervisors}{2022-1-17} \\
+            \ganttlinkedbar{Refine implementation}{2022-1-18}{2022-1-23} \\
+            \ganttlinkedmilestone[name=fi]{Finish implementation}{2022-1-23} \\
+            \ganttgroup{Evaluating Model}{2022-1-24}{2022-2-20} \\
+            \ganttbar[name=gdfi]{Gather data from implementation}{2022-1-24}{2022-2-6} \\
+            \ganttbar[name=rtbl]{Research Triple Bottom Line}{2022-2-14}{2022-2-20} \\
+            \ganttgroup{Refining Model}{2022-2-7}{2022-2-20} \\
+            \ganttbar[name=crwm]{Compare results with model}{2022-2-7}{2022-2-13} \\
+            \ganttlinkedbar[name=rm]{Refine Model}{2022-2-14}{2022-2-20} \\
+            \ganttlink{fi}{gdfi}
+            \ganttlink{gdfi}{crwm}
+            \ganttlink{crwm}{rtbl}
+            \ganttgroup{Wrapping up Thesis Work}{2022-2-21}{2022-3-7} \\
+            \ganttbar[name=cr]{Consolidate results}{2022-2-21}{2022-2-28} \\
+            \ganttlinkedbar{Prepare deliverables for TRL}{2022-2-29}{2022-3-7} \\
+            \ganttlinkedmilestone{Complete work on Thesis project}{2022-3-7} \\
+            \ganttlink{rm}{cr}
+            \ganttgroup{Final Oral Presentation}{2022-3-8}{2022-3-19} \\
+            \ganttlinkedbar{Create Presentation}{2022-3-8}{2022-3-14} \\
+            \ganttlinkedbar{Refine Presentation}{2022-3-15}{2022-3-19} \\
+            \ganttlinkedmilestone{Presentation}{2022-3-19} \\
+            \ganttgroup{Writing Thesis}{2022-2-21}{2022-4-8} \\
+            \ganttbar{Thesis Outline}{2022-2-21}{2022-2-28} \\
+            \ganttlinkedmilestone{Review outline with co-supervisors}{2022-2-28} \\
+            \ganttlinkedbar{Draft Thesis}{2022-2-29}{2022-3-14} \\
+            \ganttlinkedmilestone{Review draft with co-supervisors}{2022-3-14} \\
+            \ganttlinkedbar{Final Draft}{2022-3-15}{2022-4-8} \\
+            \ganttlinkedmilestone{Submit Thesis}{2022-4-8}
         \end{ganttchart}
         \caption{Gantt Chart}
     \end{figure}
