@@ -8,12 +8,26 @@
 
     \section{Design}
     \blindtext
-
+    
     \subsection{Mathematical Model}
     \blindtext
 
     \subsection{Implementation of Model}
-    \blindtext
+    \textbf{Existing Workflow}
+    
+    The edge computing resource allocation model will be implemented by leveraging  Kings Distributed Systems' Distributed Compute Protocol (DCP). DCP is a framework for edge computing. DCP is composed of a task scheduler, workers and the protocol layer. A job that is to be computed using DCP is broken up into discrete slices and stored in a simple data structure. A \emph{work} function is written and defines the computations to be performed on the data set. Work functions are paired with an input set of tasks and is then called a \emph{job}. The scheduler signals to the worker pool that the job is ready, then the workers request a subset of the job. The current way that the scheduler delegates these subsets, called \emph{tasks}, is in uniform chunks. The computational ability of the workers have no affect on the size of the task.
+    
+    \textbf{Cost and Constraints}
+    
+    DCP workers consist of various personal computers out in the world and are compensated monetarily for doing work. Each worker has a normalized minimum price per unit of work, and each client of DCP sets a price for a job that they are willing to pay. The scheduler handles the arbitration of matching jobs with workers that have a mutually agreeable fee. In production, there are different ways that DCP is used, however the scope of this project constrains the setup which uses a finite, heterogeneous worker pools. This means that the number of workers are static, but the heterogeneity means that they have different computation power. This project will build functionality on top of the current DCP workflow to benchmark workers and distribute tasks based on time constraints. The optimization will be minimizing cost of computing the job given that the time to compute cannot exceed the upper bound provided in the job. Calculating upper bounds and cost of workers will be provided and thus are classified as assumptions. 
+    
+    \textbf{New Workflow}
+    
+    To implement the mathematical model in practice, additional functionality will sit on top of the existing framework. The scheduler interactions that would typically be initiated by user interaction will be managed by an orchestrator program. The orchestrator will send out a "benchmark job" to the worker pool, which is a simple job that will be used to determine the computation power of each worker. The worker will locally determine its upper bound and send this information back to the orchestrator. These inputs will feed into code that calculates task distributed based on the mathematical models, and then this information will be provided for the scheduler to leverage.
+    
+    \textbf{Evaluation Metrics}
+    
+    The efficacy of the optimization model can be analyzed across a variety of factors. A key metric is monetary cost of executing a job, as the primary objective is to minimize this. Additional measures of success include completion time, bench-marking accuracy, and efficacy of application-specific job criteria (ML training success). 
 
     \section{Triple Bottom Line Factors}
     \blindtext

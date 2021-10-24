@@ -2,12 +2,12 @@
 \ProvidesClass{mthe-report}[2021/10/03 A LaTeX class to write MTHE 493 reports]
 
 % Pass down options to report class
-\DeclareOption*{\PassOptionsToClass{\CurrentOption}{report}}
+\DeclareOption*{\PassOptionsToClass{\CurrentOption}{memoir}}
 \ProcessOptions\relax
 
 \LoadClass[
     12pt,
-    twoside,
+    % twoside,
 ]{report}
 
 % Changing the title of the table of contents section.
