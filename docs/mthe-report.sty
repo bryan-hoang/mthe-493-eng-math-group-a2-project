@@ -139,12 +139,12 @@
 \providecommand{\main}{.}
 
 \makeatletter
-    \newrobustcmd*{\nobibliography}{%
-      \@ifnextchar[%]
-        {\blx@nobibliography}
-        {\blx@nobibliography[]}}
-    \def\blx@nobibliography[#1]{}
-    \appto{\skip@preamble}{\let\printbibliography\nobibliography}
+\newrobustcmd*{\nobibliography}{%
+    \@ifnextchar[%]
+    {\blx@nobibliography}
+    {\blx@nobibliography[]}}
+\def\blx@nobibliography[#1]{}
+\appto{\skip@preamble}{\let\printbibliography\nobibliography}
 \makeatother
 
 % Silences a warning about references wrapping.

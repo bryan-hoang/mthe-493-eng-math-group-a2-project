@@ -6,8 +6,8 @@
 \ProcessOptions\relax
 
 \LoadClass[
-    12pt,
-    oneside,
+  12pt,
+  oneside,
 ]{memoir}
 
 % Remove space before chapters and sections.
@@ -20,7 +20,7 @@
 \setlength{\parskip}{1em}
 \checkandfixthelayout[nearest]
 
-% Change header for non 
+% Change running header for non-chapter pages.
 \addtopsmarks{headings}{}{
   \createmark{chapter}{both}{shownumber}{}{. \ }
 }
