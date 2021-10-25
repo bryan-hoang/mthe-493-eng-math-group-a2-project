@@ -35,30 +35,6 @@
     leftmargin=*,
 }
 
-% To draw pictures
-\RequirePackage{tikz}
-\usetikzlibrary{shapes, arrows, positioning}
-
-\tikzset{
-    block/.style={
-            draw,
-            % fill=blue!20,
-            rectangle,
-            minimum height=3em,
-            minimum width=6em
-        },
-    sum/.style={
-            draw,
-            % fill=blue!20,
-            circle,
-        },
-    input/.style={coordinate},
-    output/.style={coordinate},
-    pinstyle/.style={
-            pin edge={to-,thin,black}
-        }
-}
-
 % To typeset math
 \RequirePackage{amsmath}
 \RequirePackage{amsfonts}
@@ -130,6 +106,14 @@
 
 % To add references
 \RequirePackage{csquotes}
+
+\AtEndDocument{%
+    \printbibliography[
+        title=References,
+        heading=bibintoc,
+    ]%
+}
+
 \RequirePackage[
     style=ieee,
     backend=biber,
@@ -152,12 +136,38 @@
 \DefineBibliographyStrings{english}{url = [Online]\adddot\addspace Available at,}
 \DeclareFieldFormat{urldate}{\bibstring{urlseen}\space#1}
 
+\providecommand{\main}{.}
+
+\makeatletter
+    \newrobustcmd*{\nobibliography}{%
+      \@ifnextchar[%]
+        {\blx@nobibliography}
+        {\blx@nobibliography[]}}
+    \def\blx@nobibliography[#1]{}
+    \appto{\skip@preamble}{\let\printbibliography\nobibliography}
+\makeatother
+
 % Silences a warning about references wrapping.
 \RequirePackage[final]{microtype}
 
 % Provides the `ganttchart' environment, which draws a Gantt chart within a
 % TikZ picture.
 \RequirePackage{pgfgantt}
+
+\ganttset{
+    title label font=\tiny,
+    bar label font=\tiny,
+    group label font=\tiny,
+    milestone label font=\itshape\tiny,
+    today label font=\tiny,
+    vrule label font=\tiny,
+    expand chart=\textwidth,
+    calendar week text = {W\currentweek{}},
+    y unit chart=0.75cm,
+    hgrid,
+    vgrid,
+    time slot format=isodate,
+}
 
 %% LAST PACKAGES TO LOAD %%
 

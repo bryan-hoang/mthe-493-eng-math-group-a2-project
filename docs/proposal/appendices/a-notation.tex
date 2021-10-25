@@ -1,0 +1,47 @@
+\documentclass[../mthe-493-project-proposal.tex]{subfiles}
+
+% Appendix
+\begin{document}
+    \chapter{Appendix A: Notation}
+    \label{ap:notation}
+    \section*{Network Notation}
+    \begin{tabular}{rl}
+    \(\mathbf{N}\) & A network \eqref{eq:network} \\
+    \(\mathbb{T}\) & Quantity of system resources \\
+    \(\mathbb{X}\) & State space of finite-length sequences \\
+    \(\mathbb{W}\) & Set of work functions for the network \\
+    \(\norm{\cdot}_{\mathbb{X}}\) & \(\mathbb{X}\)-norm indicating the size of a datum in \(\mathbb{X}\) \\
+    \(\xi(f, d)\) & \textit{Execution cost} of work function \(f \in \mathbb{W}\) on a datum \(d \in \mathbb{X}\) \\
+    \(\mathbf{G}\) & Graph representing network structure \\
+    \(\mathbf{V}\) & Nodes of graph \(\mathbf{G}\) representing units in the network \\
+    \(\mathbf{A}\) & Adjacency matrix of graph \(\mathbf{G}\) \\
+    \(\mathbf{R}\) & Resource production rate vector of nodes in \(\mathbf{V}\) \\
+    \(\mathbf{P}\) & Resource price rate vector of nodes in \(\mathbf{V}\) \\
+    \end{tabular}
+    
+    \section*{Job Notation}
+    \begin{tabular}{rl}
+    \(J\) & A job which can be deployed for execution on the network \\
+    \(f\) & Work function of job \(J\), where \(f \in \mathbb{W}\) \\
+    \(D\) & Tuple of input data of job \(J\), where \(D = (d \mid d \in \mathbb{X})\) \\
+    \(Y\) & Tuple of results \\
+    \(V_i\) & Set of nodes adjacent to job deployer \(v_i \in \mathbf{V}\) \\
+    \(E\) & Workers that will be assigned a portion of a job. Must be a subset of \(V_i\) \\
+    \(\overline{J}\) & Partition of \(J\) into \(|E|\) subjobs \\
+    \(J_j\) & Subjob \(j\) of partition \(\overline{J}\) which will be assigned to worker \(v_j \in E\) \\
+    \(Y_j\) & Results of subjob \(J_j\) \\
+    \end{tabular}
+    
+    \section*{Cost Function Notation}
+    \begin{tabular}{rl}
+    \(\xi_{TE}(J)\) & \textit{Total execution cost} of job \(J\) \eqref{eq:total-execution-cost} \\
+    \(t_E(J, R)\) & \textit{Expected execution time} of job \(J\) using production rate \(R\) \eqref{eq:expected-execution-time} \\
+    \(\gamma_{ND}(J, j, i)\) & \textit{Network deploy cost} for \(v_i\) to deploy job \(J\) to \(v_j\) \eqref{eq:network-deploy-cost} \\
+    \(\gamma_{NR}(J, j, i)\) & \textit{Network result cost} for \(v_j\) to return results of job \(J\) to \(v_i\) \eqref{eq:network-result-cost} \\
+    \(\gamma_N(J, j, i)\) & \textit{Network cost} is the sum of network deploy and return costs \eqref{eq:network-cost} \\
+    \(t_N(\overline{J}, E, i)\) & \textit{Expected network time} is sum of expected network costs of subjobs \eqref{eq:expected-network-time} \\
+    \(t_C(\overline{J}, E, \mathbf{R}, i)\) & \textit{Completion time} of a job, given workers and subjob partition \eqref{eq:completion-time} \\
+    \(p_R(\overline{J}, E, \mathbf{C})\) & \textit{Resource price} given subjob partition and resource prices \eqref{eq:resource-price} \\
+    \end{tabular}
+    
+\end{document}

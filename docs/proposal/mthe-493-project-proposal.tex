@@ -5,8 +5,9 @@
 
 \usepackage{../mthe-report}
 
+\addbibresource{\main/bibliography.bib}
 
-\title{\textbf{Proposal Report}}
+\title{\textbf{Proposal Report: Optimization of Resource Allocation with Training Time Constraints in Heterogeneous Edge Learning}}
 \author{
     Bryan Hoang\\
     Jack Malloch\\
@@ -16,15 +17,14 @@
 }
 \date{\today}
 
-\addbibresource{bibliography.bib}
-
 \begin{document}
-    \frontmatter
     \maketitle
+    \thispagestyle{empty}
     \newpage
+    \frontmatter
     \tableofcontents
     \listoffigures
-    \listoftables
+    % \listoftables
 
     \mainmatter{}
     \subfile{chapters/1-introduction}
@@ -35,11 +35,6 @@
 
     \backmatter{}
     \appendix
-    \chapter{Appendix}
-    \Blindtext{}
-
-    \printbibliography[
-        title=References,
-        % heading=bibintoc,
-    ]
+    \subfile{appendices/a-notation}
+    % \subfile{appendices/b-glossary}
 \end{document}

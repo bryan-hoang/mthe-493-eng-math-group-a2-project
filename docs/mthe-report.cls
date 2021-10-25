@@ -10,14 +10,26 @@
     oneside,
 ]{memoir}
 
+% Remove space before chapters and sections.
+\setlength{\cftbeforechapterskip}{0pt plus 0pt}
+\renewcommand*{\insertchapterspace}{}
+\setlength{\cftbeforesectionskip}{0pt plus 0pt}
+
+% Paragraph indentation and spacing
+\setlength{\parindent}{0em}
+\setlength{\parskip}{1em}
+\checkandfixthelayout[nearest]
+
+% Change header for non 
+\addtopsmarks{headings}{}{
+  \createmark{chapter}{both}{shownumber}{}{. \ }
+}
+\pagestyle{headings}
+
 % Changing the title of the table of contents section.
 \RequirePackage[english]{babel}
 
 \addto\captionsenglish{\renewcommand*\contentsname{Table Of Contents}}
-
-\setlength{\cftbeforechapterskip}{0pt plus 0pt}
-\renewcommand*{\insertchapterspace}{}
-\setlength{\cftbeforesectionskip}{0pt plus 0pt}
 
 % Change formatting of chapter titles
 \RequirePackage{titlesec}
@@ -33,11 +45,6 @@
 \patchcmd{\chapter}{\if@openright\cleardoublepage\else\clearpage\fi}{}{}{}
 \makeatother
 
-% \renewcommand*{\bibsection}{%
-%     \chapter*{\bibname}\addcontentsline{toc}{chapter}{\bibname}
-%     \SingleSpacing%
-% }
-
-\setlength{\parindent}{0em}
-\setlength{\parskip}{1em}
-\checkandfixthelayout[nearest]
+% Number subsections and above.
+\setsecnumdepth{subsection}
+\maxtocdepth{subsection}

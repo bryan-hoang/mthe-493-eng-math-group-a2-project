@@ -1,24 +1,10 @@
 \documentclass[../mthe-493-project-proposal.tex]{subfiles}
 
-\ganttset{
-    title label font=\tiny,
-    bar label font=\tiny,
-    group label font=\tiny,
-    milestone label font=\itshape\tiny,
-    today label font=\tiny,
-    vrule label font=\tiny,
-    expand chart=\textwidth,
-    calendar week text = {W\currentweek{}},
-    y unit chart=0.75cm,
-    hgrid,
-    vgrid,
-    time slot format=isodate,
-}
-
 % Project Timeline (in both Tabular and Gantt Chart formats)
 \begin{document}
     \chapter{Project Timeline}
     \label{ch:project-timeline}
+    Figure~\ref{fig:gantt-fall} and Figure~\ref{fig:gantt-winter} show the tentative timelines of the project for the fall and winter semesters respectively.
     \begin{figure}
         \begin{ganttchart}{2021-10-11}{2021-12-5}
             \gantttitlecalendar{
@@ -44,7 +30,8 @@
             \ganttbar{Implement model of system}{2021-11-22}{2021-12-5}
             \ganttlink{rpdcm}{dm}
         \end{ganttchart}
-        \caption{Gantt Chart}
+        \caption{Gantt Chart of the project's timeline during the fall semester}
+        \label{fig:gantt-fall}
     \end{figure}
 
     \begin{figure}
@@ -84,6 +71,7 @@
             \ganttlinkedbar{Final Draft}{2022-3-15}{2022-4-8} \\
             \ganttlinkedmilestone{Submit Thesis}{2022-4-8}
         \end{ganttchart}
-        \caption{Gantt Chart}
+        \caption{Gantt Chart of the project's timeline during the winter semester}
+        \label{fig:gantt-winter}
     \end{figure}
 \end{document}
