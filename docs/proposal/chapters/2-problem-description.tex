@@ -5,6 +5,10 @@
 \begin{document}
     \chapter{Problem Description}
     \label{ch:problem-description}
+
+    \section{Mathematical Description}
+    \label{sec:mathematical-description}
+
     We introduce a \textit{network} as a system of heterogeneous units, each with a capacity to produce or utilize some amount of a quantifiable resource on behalf of other units in the network.
 
     A quantity of system resources take values in $\mathbb{T} \subseteq \mathbb{R}_{\geq 0}$, and are described in relation to a \textit{state space} $\mathbb{X}$ consisting of sequences of finite length, and a set of \textit{work functions} which operate on the state space:
@@ -57,7 +61,6 @@
         \label{eq:network}
         \mathbf{N} = (\mathbb{T}, \mathbb{X}, \mathbb{W}, \xi, \mathbf{G}, \mathbf{R}, \mathbf{P})
     \end{equation}
-
     A \textit{job} is the pairing of a work function and a finite tuple of \textit{input data} from which job \textit{results} can be derived. Formally, a job is
     \begin{equation*}
         J = (f, D) \text{ where } f \in \mathbb{W} \text{ and } D = (d_1, d_2, \dotsc, d_N) \subset \mathbb{X}
@@ -66,7 +69,6 @@
     \begin{equation*}
         Y = (f(d) \mid d \in D) \subset \mathbb{X}.
     \end{equation*}
-
     A \textit{job deployer} is a node that employs some or all of the adjacent nodes to perform a job. It is assumed that all units on the network are capable of deploying and executing a job.
 
     Job deployment proceeds as follows: denote by $V_i$ the set of nodes adjacent to job deployer $v_i$, given by
@@ -160,15 +162,16 @@
     The last set of circumstances will be the focus of the subsequent application.
 
     \section{Application}
+    \label{sec:application}
     % In the application section, apply the formal math from above in the specific context of our distributed computing problem (based on intro/background section etc.)
 
     \textit{Distributed computing} is the technique of linking multiple computers together to form a network for sharing data and coordinating processing power. A computer network can be configured in either a \textit{decentralized} or \textit{centralized} way. In a decentralized network, all computers can connect and communicate with each other. There is no single controlling authority which dictates the flow of information through the network.
 
-    A centralized network is configured with a hierarchical structure and is controlled by a central authoritative computer. The central authority can directly connect to all other computers and control their function. In distributed computing, this central authority is called an \textit{orchestrator}. The orchestrator can employ the compute resources of the entire network to perform large parallel computation. The other computers in the network which perform the computation are called \textit{workers}.
+    A centralized network is configured with a hierarchical structure and is controlled by a central authoritative computer. The central authority can directly connect to all other computers and control their function. In distributed computing, this central authority is called an \textit{orchestrator}. The orchestrator can employ the compute resources of the entire network to perform large parallel computation. The other computers in the network which perform the computation are called \textit{workers}. Since the application of this project's implementation is parallel learning, its focus will be on centralized networks.
 
-    A centralized distributed computing network can be modelled mathematically using the notion of a network that was established in the previous section. Denoting a collection of $n$ computers as $\mathbf{V} = (v_1, v_2, ..., v_n)$ with computation rates $\mathbf{R} = (r_1, r_2, ..., r_n)$ and price per processor-hour $\mathbf{P} = (p_1, p_2, ..., p_n)$, each $v_i$ can be thought of as a computer with a computation rate $r_i$ and a price to employ of $p_i$. In a \textit{heterogeneous} computer network, computational capacity and price of compute will vary from machine to machine.
+    A centralized distributed computing network can be modelled mathematically using the notion of a network that was established in ~\autoref{sec:mathematical-description}. Denoting a collection of $n$ computers as $\mathbf{V} = (v_1, v_2, ..., v_n)$ with computation rates $\mathbf{R} = (r_1, r_2, ..., r_n)$ and price per processor-hour $\mathbf{P} = (p_1, p_2, ..., p_n)$, each $v_i$ can be thought of as a computer with a computation rate $r_i$ and a price to employ of $p_i$. In a \textit{heterogeneous} computer network, computational capacity and price of compute will vary from machine to machine.
 
-    The structure of the distributed computing network is represented as the directed graph $\mathbf{G} = (\mathbf{V}, \mathbf{A})$. Because in a centralized network only the orchestrator can command processing power from the other computers, the adjacency matrix $\mathbf{A}$ is zero-valued for any edge which does not connect to the orchestrator node. In other words, there are no connections between any two computers that are not the orchestrator for the purposes of distributed computing. This feature is in addition to the other assumptions made for $\mathbf{A}$ in the previous section.
+    The structure of the distributed computing network is represented as the directed graph $\mathbf{G} = (\mathbf{V}, \mathbf{A})$. Because in a centralized network only the orchestrator can command processing power from the other computers, the adjacency matrix $\mathbf{A}$ is zero-valued for any edge which does not connect to the orchestrator node. In other words, there are no connections between any two computers that are not the orchestrator for the purposes of distributed computing. This feature is in addition to the other assumptions made for $\mathbf{A}$ in~\autoref{sec:mathematical-description}.
 
     When the orchestrator uses the network to compute in parallel, it is deploying a job denoted $J = (f,D)$ which consists of a function $f$ to be computed on a dataset $D \subseteq \mathbb{X}$. Here $\mathbb{X}$ is the infinite set of all possible input datasets. The orchestrator deploys a partition of $D$ to each employed worker along with copies of the work function $f$ for computation. The workers each return their computed results to the orchestrator, and these are the constituents of the result set $Y$.
 
@@ -179,12 +182,12 @@
     \section{Triple Bottom Line}
     %     - Helping research progress faster
     %     - Privacy concerns (e.g., fingerprinting)
-    The suboptimal allocation of resources in edge computing will lower its overall performance, decreasing its effectiveness as an alternative to traditional computing and potentially making it a worse alternative. Thus, optimizing it will lead to edge computing being a better alternative in helping advance research faster. But the optimization requires gathering information regarding the computational capabilities of a person's device, which can raise privacy concerns. It is a similar problem observed in device fingerprinting where user's privacy is intruded upon by unwanted tracking~\cite{laperdrix_browser_2020}. As such, it is imperative that when collecting statistics about devices working on the network, the information collected adheres to Canada’s federal private-sector privacy law, the \textit{Personal Information Protection and Electronic Documents Act} (PIPEDA)~\cite{noauthor_privacy_nodate}.
+    The suboptimal allocation of resources in edge computing will lower its overall performance, decreasing its effectiveness as an alternative to traditional computing and potentially making it a worse alternative. Thus, optimizing it is a prudent step in making it a preferable computing alternative for helping advance industry processes and the pace of research. But the optimization requires gathering information regarding the computational capabilities of a person's device, which can raise privacy concerns. It is a similar problem observed in device fingerprinting where user's privacy is intruded upon by unwanted tracking~\cite{laperdrix_browser_2020}. As such, it is imperative that when collecting statistics about devices working on the network, the information collected adheres to Canada’s federal private-sector privacy law, the \textit{Personal Information Protection and Electronic Documents Act} (PIPEDA)~\cite{noauthor_privacy_nodate}.
 
     % - Lowered costs for computing
     % - Electricity costs
     % - Economy of working as a node (being paid due to minimum working wage)
     % - Edge computing vs traditional Cloud computing e.g., AWS server farms (ref)
     % - Less ewaste by using computing power of already existing devices
-    Suboptimally allocating resources in edge computing can also result in increased financial and environmental costs for people using the edge computing network through increased energy usage. In DL, the low performance caused by the limitations of the weakest worker results in a large amount of idle time on the orchestrator. Since idle or underutilized servers use between 50-65 percent of the energy of fully utilized servers~\cite{noauthor_triple_nodate}, minimizing this time through reducing the impact of the weakest worker will result in increased energy efficiencies that will reduce the costs associated with wasted energy.
+    Suboptimally allocating resources in edge computing can also result in increased financial and environmental costs for people using the edge computing network through increased energy usage. In DL, the low performance caused by the limitations of the weakest worker results in a large amount of idle time on the orchestrator. Since idle or underutilized servers still use between 50-65 percent of the energy of fully utilized servers~\cite{noauthor_triple_nodate}, minimizing this time through reducing the impact of the weakest worker will result in increased energy efficiencies that will reduce the costs associated with wasted energy.
 \end{document}

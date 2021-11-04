@@ -6,7 +6,19 @@
     \label{ch:proposed-design}
 
     \section{Mathematical Model}
-    \blindtext
+    % First paragraph: what is the focus of the research moving forward, based on section 2.0 of the problem definition?
+    % - Cost function minimization in the context of a stochastic optimization problem
+    % - Minimize the resource price to deploy a job such that a target completion time is not exceeded
+    Following the modelling of the fundamental problem as a stochastic optimization problem in~\autoref{sec:mathematical-description}, a literature review of relevant work specific to both the general problem and the application problem of~\autoref{sec:application} will be conducted. The goal of this investigation is to determine if a general solution that minimizes \textit{resource price}~\eqref{eq:resource-price} given a target \textit{completion time}~\eqref{eq:completion-time} is possible, and if so, the conditions under which a solution is valid.
+    
+    % Second paragraph: where will development/refinement of the Application section of the mathematical model/problem definition proceed?
+    % Just starting the next paragraph...
+    If a general solution to the aforementioned problem does exist, the design and implementation of an algorithm that encapsulates said solution will follow. If not, then efforts will be put into the development of a heuristic solution. Due to the complex nature of the problem, it may be necessary to investigate and trial multiple algorithms and/or heuristic solutions.
+    % Mike, finish this
+    
+    The final mathematical optimization framework must be implementable into an active network so that the orchestrator may rapidly employ it to optimally distribute any new job it is tasked with deploying. 
+    %In order to rapidly minimize the effects of run-time and price in an implemented system, the orchestrator will need to use a minimization algorithm to find the best way to partition and allocate input sets. Values for $\mathbf{R}$, $\mathbf{P}$, and $\mathbf{A}$ can be measured dynamically and fed into the algorithm. Literature surrounding the minimization of cost functions on similarly defined networks will be reviewed in order to find and test algorithms that are well suited to this problem.
+    
 
     \section{Design Implementation}
     \subsection{Existing Workflow}
@@ -16,12 +28,14 @@
     \subsection{Cost and Constraints}
     \label{ssec:costs-and-constraints}
 
-    The DCP workers consist of various personal computers out in the world and are compensated monetarily for doing work. Each worker has a normalized minimum price per unit of work, and each client of the DCP sets a price for a job that they are willing to pay. The scheduler handles the arbitration of matching jobs with workers that have a mutually agreeable fee. In production, there are different ways that the DCP is used, however the scope of this project constrains the setup which uses a finite, heterogeneous worker pools. This means that the number of workers is static, but the heterogeneity means that they have different computation power. This project will build functionality on top of the current DCP workflow to benchmark workers and distribute tasks based on time constraints. The optimization will be minimizing the cost of computing the job, given that the time to compute cannot exceed the upper bound. Methods of calculating the upper bounds and cost of workers will be provided, and thus are classified as assumptions.
+    The DCP workers consist of various personal computers out in the world and are compensated monetarily for doing work. Each worker has a normalized minimum price per unit of work, and each client of the DCP sets a price for a job that they are willing to pay. The scheduler handles the arbitration of matching jobs with workers that have a mutually agreeable fee. In production, there are different ways that the DCP is used, however the scope of this project constrains the setup which uses a finite, heterogeneous worker pool. This means that the number of workers is static, but the heterogeneity means that they have different computation power. This project will build functionality on top of the current DCP workflow to benchmark workers and distribute tasks based on time constraints. The optimization will be minimizing the cost of computing the job, given that the time to compute cannot exceed the upper bound. Methods of calculating the upper bounds and cost of workers will be provided, and thus are classified as assumptions.
 
     \subsection{New Workflow}
     \label{ssec:new-workflow}
 
     To implement the mathematical model in practice, additional functionality will sit on top of the existing framework. The scheduler interactions that would typically be initiated by user interaction will be managed by an orchestrator program. The orchestrator will send out a "benchmark job" to the worker pool, which is a simple job that will be used to determine the computation power of each worker. The worker will locally determine its upper bound and send this information back to the orchestrator. These inputs will feed into code that calculates task distributed based on the mathematical models, and then this information will be provided for the scheduler to leverage.
+    
+    At this point, the details of implementation for the application of DL, or more specifically PL, are not concrete. More research will have to be done on exactly how each edge device will have the requirements needed to run local training iterations, and how uniformization of any input parameters/hyperparameters can be guaranteed. In the event that this project cannot use the DCP's method of handling these dependencies, a more manual approach can be taken with the edge devices that will be used in our experimentation. 
 
     \subsection{Evaluation Metrics}
 

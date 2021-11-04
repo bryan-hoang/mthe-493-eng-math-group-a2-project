@@ -8,6 +8,7 @@
 \LoadClass[
   12pt,
   oneside,
+  letterpaper,
 ]{memoir}
 
 % Remove space before chapters and sections.
@@ -34,16 +35,8 @@
 % Change formatting of chapter titles
 \RequirePackage{titlesec}
 
-\titleformat{\chapter}{\normalfont\bfseries\huge}{\thechapter.}{1em}{}
+\titleformat{\chapter}{\normalfont\bfseries\huge}{\thechapter}{0.75em}{}
 \titlespacing*{\chapter}{0pt}{0pt}{24pt}
-
-% Don't start chapters on new pages.
-% Source: https://tex.stackexchange.com/a/24067/204377
-\RequirePackage{etoolbox}
-
-\makeatletter
-\patchcmd{\chapter}{\if@openright\cleardoublepage\else\clearpage\fi}{}{}{}
-\makeatother
 
 % Number subsections and above.
 \setsecnumdepth{subsection}
