@@ -4,7 +4,7 @@ from tqdm import tqdm
 import asyncio, requests, torch, time, signal
 
 # the ip address of the notice board
-nb_ip = '192.168.2.19'
+nb_ip = '192.168.56.1'
 
 BATCH_SIZE = 32
 
