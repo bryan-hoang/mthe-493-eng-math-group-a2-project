@@ -17,6 +17,23 @@ criterion = torch.nn.CrossEntropyLoss()
 x_train = None
 y_train = None
 
+minimum_wage = 0
+
+# sets the minimum wage for the worker
+@worker.rpc()
+def set_minimum_wage(wage):
+	global minimum_wage
+
+	minimum_wage = wage
+
+
+# gets the minimum wage for the worker
+@worker.rpc()
+def get_minimum_wage():
+	global minimum_wage
+
+	return minimum_wage
+
 # returns an instance of the optimizer we'll use
 def get_optimizer(neural_net):
 	return torch.optim.Adam([{'params': neural_net.parameters()}], lr=0.0001)
