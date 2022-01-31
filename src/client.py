@@ -82,6 +82,18 @@ async def main():
 	# instantiates remote worker objects, with which we can call rpcs on each worker
 	workers = [client.RemoteWorker(ip) for ip in worker_ips]
 
+	print('setting worker wages')
+
+	# Hardcode experiments for wages and max price, both normalized per batch
+	job_max_price_per_batch = 10
+	wages_per_batch = [5]
+	paid_out_for_job = [0]
+
+	# set wages in each worker
+	minwage_coros = []
+	for index, w in enumerate(workers):
+		minwage_coros.append(w.rpcs.set_minimum_wage(wages_per_batch[index]))
+
 	print('benchmarking workers')
 
 	# start benchmarks in each worker
@@ -104,8 +116,15 @@ async def main():
 	for index, w in enumerate(workers):
 		num_batches = data_allocation[index]
 
-		# gets a bunch of random indices of data samples
-		indices = torch.randperm(x_train.shape[0])[0: num_batches*BATCH_SIZE]
+		# FUTURE REFERENCE - Additional optimization code will go here
+		if wages_per_batch[index] < job_max_price_per_batch:
+			# If wage is acceptable, assign the appropriate number of batches and charge the "wallet"
+			# gets a bunch of random indices of data samples
+			indices = torch.randperm(x_train.shape[0])[0: num_batches*BATCH_SIZE]
+			paid_out_for_job[index] = wages_per_batch[index]*num_batches
+		else:
+			# If wage is too much, do not assign any data
+			indices = torch.randperm(x_train.shape[0])[0: 0]
 
 		x_data = x_train[indices]
 		y_data = y_train[indices]
@@ -145,6 +164,8 @@ async def main():
 		# evaluate new parameters
 		loss, acc = val_evaluation(net, x_test, y_test)
 		print('network loss and validation:', loss, acc)
+
+	print("Total paid out: " + str(sum(paid_out_for_job)))
 
 if (__name__ == '__main__'):
 	asyncio.run(main())
