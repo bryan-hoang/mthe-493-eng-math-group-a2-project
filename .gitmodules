@@ -1,6 +1,0 @@
-[submodule "latex"]
-	path = latex
-	url = git@github.com:bryan-hoang/mthe-493.git
-[submodule "syncedReturn"]
-	path = syncedReturn
-	url = git@github.com:bryan-hoang/syncedReturn.git
