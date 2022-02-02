@@ -5,7 +5,6 @@ import time
 import asyncio, requests, torch, time, signal
 
 # the ip address of the notice board
-#nb_ip = '192.168.56.1'
 nb_ip = None
 
 BATCH_SIZE = 32
@@ -141,7 +140,7 @@ def shutdown_handler(a, b):
 async def main():
 	global nb_ip
 	axon_local_ips = await discovery.broadcast_discovery(num_hosts=1, port=config.comms_config.notice_board_port)
-	print(axon_local_ips)
+
 	nb_ip = axon_local_ips.pop()
 	# signs into notice board
 	discovery.sign_in(ip=nb_ip)
