@@ -1,6 +1,7 @@
 from axon import discovery, client
 from common import TwoNN, set_parameters, get_accuracy
 from keras.datasets import mnist
+import time
 import asyncio, torch
 
 num_global_cycles = 10
@@ -140,6 +141,8 @@ async def main():
 	loss, acc = val_evaluation(net, x_test, y_test)
 	print('network loss and validation prior to training:', loss, acc)
 
+	start_time = time.time()
+
 	for i in range(num_global_cycles):
 		print('training index:', i, 'out of', num_global_cycles)
 
@@ -167,7 +170,21 @@ async def main():
 		loss, acc = val_evaluation(net, x_test, y_test)
 		print('network loss and validation:', loss, acc)
 
-	print("Total paid out: " + str(sum(paid_out_for_job)))
+	elapsed_time = time.time() - start_time
+
+	timing_logs_coros = []
+	for w in workers:
+		timing_logs_coros.append(w.rpcs.return_and_clear_timing_logs())
+
+	# wait for timing logs to be returned from each worker
+	timing_logs = await asyncio.gather(*timing_logs_coros)
+
+	for index, log in enumerate(timing_logs):
+		print('worker ' + str(index) + ' computed ' + str(len(log)) + ' batches in ' + str(sum(log)) + 's')
+	print('total elapsed time for job completion ' + str(elapsed_time))
+	for index, pay in enumerate(paid_out_for_job):
+		print('worker ' + str(index) + ' was payed ' + str(pay) + ' for computing ' + str(pay//wages_per_batch[index]) + ' batches')
+	print("total paid out: " + str(sum(paid_out_for_job)))
 
 if (__name__ == '__main__'):
 	asyncio.run(main())

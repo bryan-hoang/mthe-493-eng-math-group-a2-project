@@ -1,6 +1,7 @@
 from axon import discovery, worker
 from common import TwoNN, set_parameters
 from tqdm import tqdm
+import time
 import asyncio, requests, torch, time, signal
 
 # the ip address of the notice board
@@ -18,6 +19,8 @@ x_train = None
 y_train = None
 
 minimum_wage = 0
+
+timing_logs = []
 
 # sets the minimum wage for the worker
 @worker.rpc()
@@ -87,6 +90,10 @@ def benchmark(num_batches):
 # rpc that performs local update
 @worker.rpc(comms_pattern='duplex', executor='Thread')
 def local_update(central_model_params):
+	global timing_logs
+
+	start_time = time.time()
+
 	print('performing local update')
 	global net, criterion, device
 
@@ -113,7 +120,18 @@ def local_update(central_model_params):
 		loss.backward()
 		optimizer.step()
 
+	timing_logs.append(time.time() - start_time)
+
 	return list(net.parameters())
+
+# get timing logs and clear them locally
+@worker.rpc()
+def return_and_clear_timing_logs():
+	global timing_logs
+	logs = timing_logs
+	timing_logs = []
+
+	return logs
 
 def shutdown_handler(a, b):
 	discovery.sign_out(ip=nb_ip)
