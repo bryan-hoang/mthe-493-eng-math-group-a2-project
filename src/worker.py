@@ -1,10 +1,12 @@
-from axon import discovery, worker
+from axon import config, discovery, worker
 from common import TwoNN, set_parameters
 from tqdm import tqdm
+import time
 import asyncio, requests, torch, time, signal
 
 # the ip address of the notice board
-nb_ip = '192.168.56.1'
+#nb_ip = '192.168.56.1'
+nb_ip = None
 
 BATCH_SIZE = 32
 
@@ -18,6 +20,8 @@ x_train = None
 y_train = None
 
 minimum_wage = 0
+
+timing_logs = []
 
 # sets the minimum wage for the worker
 @worker.rpc()
@@ -87,6 +91,10 @@ def benchmark(num_batches):
 # rpc that performs local update
 @worker.rpc(comms_pattern='duplex', executor='Thread')
 def local_update(central_model_params):
+	global timing_logs
+
+	start_time = time.time()
+
 	print('performing local update')
 	global net, criterion, device
 
@@ -113,13 +121,28 @@ def local_update(central_model_params):
 		loss.backward()
 		optimizer.step()
 
+	timing_logs.append(time.time() - start_time)
+
 	return list(net.parameters())
+
+# get timing logs and clear them locally
+@worker.rpc()
+def return_and_clear_timing_logs():
+	global timing_logs
+	logs = timing_logs
+	timing_logs = []
+
+	return logs
 
 def shutdown_handler(a, b):
 	discovery.sign_out(ip=nb_ip)
 	exit()
 
-def main():
+async def main():
+	global nb_ip
+	axon_local_ips = await discovery.broadcast_discovery(num_hosts=1, port=config.comms_config.notice_board_port)
+	print(axon_local_ips)
+	nb_ip = axon_local_ips.pop()
 	# signs into notice board
 	discovery.sign_in(ip=nb_ip)
 
@@ -130,4 +153,4 @@ def main():
 	worker.init()
 
 if (__name__ == '__main__'):
-	main()
+	asyncio.run(main())
