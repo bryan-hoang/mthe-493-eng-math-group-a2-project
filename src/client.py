@@ -94,6 +94,8 @@ async def main():
 	for index, w in enumerate(workers):
 		minwage_coros.append(w.rpcs.set_minimum_wage(wages_per_batch[index]))
 
+await asyncio.gather(*minwage_coros)
+
 	print('benchmarking workers')
 
 	# start benchmarks in each worker
