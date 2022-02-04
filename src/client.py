@@ -1,11 +1,11 @@
-from axon import discovery, client
+from axon import config, discovery, client
 from common import TwoNN, set_parameters, get_accuracy
 from keras.datasets import mnist
 import time
 import asyncio, torch
 
 num_global_cycles = 10
-nb_ip = '192.168.56.1'
+nb_ip = None
 BATCH_SIZE = 32
 
 device = 'cpu'
@@ -74,6 +74,13 @@ def val_evaluation(net, x_test, y_test):
 	return loss, acc
 
 async def main():
+	global nb_ip
+
+	# grabs notice board ip for discovery use
+	axon_local_ips = await discovery.broadcast_discovery(num_hosts=1, port=config.comms_config.notice_board_port)
+
+	nb_ip = axon_local_ips.pop()
+
 	# starts the RVL
 	await client.start_client()
 
