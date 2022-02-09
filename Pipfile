@@ -1,11 +1,24 @@
 [[source]]
+name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
-name = "pypi"
 
 [packages]
+axon-ecrg = "*"
+# Source: https://github.com/ljk53/pytorch-rpi. Compiled manually.
+torch = { path = "./vendor/torch-1.9.0a0+gitd69c22d-cp39-cp39-linux_armv7l.whl" }
+tqdm = "*"
 
 [dev-packages]
+bandit = "*"
+black = "*"
+flake8 = "*"
+mypy = "*"
+pydocstyle = "*"
+pylint = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.9"
+
+[pipenv]
+allow_prereleases = true
