@@ -16,6 +16,8 @@ flake8 = "*"
 mypy = "*"
 pydocstyle = "*"
 pylint = "*"
+pytest = "*"
+pytest-asyncio = "*"
 
 [requires]
 python_version = "3.9"
