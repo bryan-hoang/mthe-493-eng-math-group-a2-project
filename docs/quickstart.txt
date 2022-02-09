@@ -1,8 +1,0 @@
-Step 1: start the notice board
-To start the notice board, simply call python notice_board.py. You must also set the variable nb_ip in both worker and client to the IP address of the machine that the notice board is running on, which can also be a worker
-
-Step 2: start workers
-Call python worker.py on each machine that you would like to use as a worker
-
-Step 3: start client
-Call python client.py on the machine you would like to act as the orchestrator
