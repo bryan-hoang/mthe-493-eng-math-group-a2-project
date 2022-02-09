@@ -1,5 +1,6 @@
 from axon import config, discovery, client
 from common import TwoNN, set_parameters, get_accuracy
+# FIXME(bryan-hoang): Remove tensorflow dependency for dataset.
 from keras.datasets import mnist
 import time
 import asyncio, torch
@@ -12,6 +13,7 @@ device = 'cpu'
 if torch.cuda.is_available(): device = 'cuda:0'
 
 # importing data
+# FIXME(bryan-hoang): Remove tensorflow dependency for dataset.
 raw_data = mnist.load_data()
 
 x_train_raw = raw_data[0][0]
@@ -66,7 +68,7 @@ def val_evaluation(net, x_test, y_test):
 
 		loss += criterion(y_hat, y_batch).item()
 		acc += get_accuracy(y_hat, y_batch).item()
-	
+
 	# normalizing the loss and accuracy
 	loss = loss/num_test_batches
 	acc = acc/num_test_batches
