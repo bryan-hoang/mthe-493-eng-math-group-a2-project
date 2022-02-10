@@ -18,7 +18,7 @@ make install
 
 on each machine to be used to install the python dependencies using `pipenv` and to ensure proper libraries are installed for `pytorch` to work.
 
-**Activate the `pipenv` shell however you wish**. Then to set up the system,
+**Access the `pipenv` virtual environment using `pipenv shell` or `pipenv run <...>`**. Then to set up the system,
 
 1. Start the notice board:
 
