@@ -5,9 +5,9 @@ verify_ssl = true
 
 [packages]
 axon-ecrg = "*"
-# Source: https://github.com/ljk53/pytorch-rpi. Compiled manually.
-torch = { path = "./vendor/torch-1.9.0a0+gitd69c22d-cp39-cp39-linux_armv7l.whl" }
+torch = { file = "https://github.com/ljk53/pytorch-rpi/raw/master/torch-1.9.0a0%2Bgitd69c22d-cp37-cp37m-linux_armv7l.whl" }
 tqdm = "*"
+numpy = "*"
 
 [dev-packages]
 bandit = "*"
@@ -20,7 +20,8 @@ pytest = "*"
 pytest-asyncio = "*"
 
 [requires]
-python_version = "3.9"
+python_version = "3.7"
 
 [pipenv]
-allow_prereleases = true
+# To avoid installing `aiohttp 4.0.0a1` causing an incompatability with axon.
+allow_prereleases = false
