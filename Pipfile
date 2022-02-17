@@ -6,8 +6,8 @@ verify_ssl = true
 [packages]
 axon-ecrg = "*"
 numpy = "*"
-torch = { version = "==1.9.0", markers = "platform_machine != 'armv7l'" }
-torch_pi = { file = "https://github.com/ljk53/pytorch-rpi/raw/master/torch-1.9.0a0%2Bgitd69c22d-cp37-cp37m-linux_armv7l.whl", markers = "sys_platform == 'linux' and platform_machine == 'armv7l'" }
+torch = { version = "==1.9.0", markers = "platform_machine != 'arm64'" }
+torch_pi = { file = "https://github.com/ljk53/pytorch-rpi/raw/master/torch-1.9.0a0%2Bgitd69c22d-cp37-cp37m-linux_armv7l.whl", markers = "sys_platform == 'linux' and platform_machine == 'arm64'" }
 tqdm = "*"
 
 [dev-packages]
