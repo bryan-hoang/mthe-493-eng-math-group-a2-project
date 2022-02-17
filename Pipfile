@@ -21,7 +21,7 @@ pytest = "*"
 pytest-asyncio = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.9"
 
 [pipenv]
 # To avoid installing `aiohttp 4.0.0a1` causing an incompatability with axon.
