@@ -1,6 +1,7 @@
 from axon import config, discovery, client
 from common import TwoNN, set_parameters, get_accuracy
-from keras.datasets import mnist
+from torchvision.datasets import MNIST
+import torchvision.transforms as transforms
 import time
 import asyncio, torch
 
@@ -12,16 +13,16 @@ device = 'cpu'
 if torch.cuda.is_available(): device = 'cuda:0'
 
 # importing data
-raw_data = mnist.load_data()
+test_transform = train_transform = transforms.Compose([transforms.ToTensor()])
+train_set = MNIST('./data', train=True, download=True, transform=train_transform)
+test_set = MNIST('./data', train=False, download=True, transform=test_transform)
 
-x_train_raw = raw_data[0][0]
-y_train_raw = raw_data[0][1]
-x_test_raw = raw_data[1][0]
-y_test_raw = raw_data[1][1]
+x_train_raw, y_train_raw= map(list, zip(*train_set))
+x_test_raw, y_test_raw= map(list, zip(*test_set))
 
 # formatting data
-x_train = torch.tensor(x_train_raw, dtype=torch.float32).reshape([-1, 784])
-x_test = torch.tensor(x_test_raw, dtype=torch.float32).reshape([-1, 784])
+x_train = torch.cat(x_train_raw).reshape([-1,784])
+x_test = torch.cat(x_test_raw).reshape([-1,784])
 
 y_train = torch.tensor(y_train_raw, dtype=torch.long)
 y_test = torch.tensor(y_test_raw, dtype=torch.long)
