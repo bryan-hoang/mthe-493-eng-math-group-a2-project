@@ -107,8 +107,32 @@ class AssignmentError(Exception):
         super().__init__(msg)
 
 
+def get_capacity(workers: List[Worker]) -> int:
+    return sum(map(lambda w: w.s_max, workers))
+
+
 def get_employable_workers(workers: List[Worker], s_min: int) -> List[Worker]:
-    return [w for w in workers if w.s_max > 0 and w.s_max >= s_min]
+    eligible = [w for w in workers if w.s_max > 0 and w.s_max >= s_min]
+    return eligible
+    # eligible.sort(key=lambda w: w.c)
+    # # very important detail: we can only employ so many workers based on n and s_min
+    # # this factors into which workers are actually employable, since we must exclude workers that can't meet n when in a group of max_employable
+    # max_employable = n // s_min
+    # # need to find the largest subset with <= max_employable elements which have sum (s_max) >= n
+    # # (this is a subset-sum problem)
+    # # Algorithm:
+    # # start with the entire set. remove the most expensive workers until we have a subset of length max_employable
+    # # if this subset satisfies sum s_max, return
+    # # else, swap the worker w/ smallest s_max for the cheapest worker with a larger s_max
+    # el_tuple = [(i, eligible[i].c, eligible[i].s_max) for i in range(len(eligible))]
+    # incl_subset = el_tuple[:max_employable]
+    # excl_subset = el_tuple[max_employable:]
+    # # TODO: This could throw IndexError
+    # while True:
+    #     subset = [eligible[tup[0]] for tup in incl_subset]
+    #     valid = get_capacity(subset)
+
+    # return [w for w in workers if w.s_max > 0 and w.s_max >= s_min]
 
 
 def check_infeasible_dist(workers: List[Worker], n: int, s_min: int):
@@ -151,8 +175,9 @@ def assign_work(workers: List[Worker], data_set: List, beta: int, s_min: int) ->
     # sort employable workers by cost (in-place)
     employable.sort(key=lambda w: w.c)
     k_employable = len(employable)
+    k_max = n // s_min
     # employable worker capacity = sum (s_max) over employable workers
-    capacity = sum(map(lambda w: w.s_max, employable))
+    capacity = get_capacity(employable)
     infeasible_dist = check_infeasible_dist(employable, n, s_min)
     # CHECK 0: n > 0
     if n <= 0:
@@ -170,6 +195,7 @@ def assign_work(workers: List[Worker], data_set: List, beta: int, s_min: int) ->
     if not infeasible_dist.feasible:
         raise InfeasibleDistributionError(n, s_min, infeasible_dist)
 
+    # TODO: Need to eliminate workers that would never be able to handle data in the feasible solution (see notes in get_employable_workers)
     # IDs of workers that receive data
     assigned_workers = []
     # index in data_set we are assigning next
