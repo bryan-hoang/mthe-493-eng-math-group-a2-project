@@ -1,6 +1,4 @@
-from collections import namedtuple
 from math import ceil, floor
-from re import template
 import sys
 from typing import List, Union, NamedTuple, Tuple
 from statistics import StatisticsError, variance, mean
