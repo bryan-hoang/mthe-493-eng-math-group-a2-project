@@ -1,5 +1,5 @@
 from collections import namedtuple
-from math import floor
+from math import ceil, floor
 from re import template
 import sys
 from typing import List, Union, NamedTuple, Tuple
@@ -15,6 +15,8 @@ USE_SUBSET = True
 LOG_ASSIGNED_WORK = False
 # Should InputSet(c=[...], s_max=[...]) be logged?
 LOG_INPUT_LISTS = True
+# Should the timing in assign_work be enabled?
+ENABLE_NATIVE_TIMING = False
 
 
 class Worker:
@@ -108,7 +110,6 @@ class Timing(NamedTuple):
     init: float
     get_employable_workers: float
     get_capacity: float
-    check_infeasible_dist: float
     assign: float
     reassign: float
     total: float
@@ -315,10 +316,6 @@ class Stats:
         return str_val
 
 
-InfeasibleDist = namedtuple(
-    "InfeasibleDist", "feasible excess_available excess_required")
-
-
 class TestCase(NamedTuple):
     input_set: InputSet
     feasible: bool
@@ -372,18 +369,6 @@ class InsufficientCapacityError(Exception):
     def __init__(self, n: int, capacity: int) -> None:
         template = "Data set size exceeds employable worker capacity (data set size: {}, capacity: {})"
         msg = template.format(n, capacity)
-        super().__init__(msg)
-
-
-class InfeasibleDistributionError(Exception):
-    __name__ = "InfeasibleDistributionError"
-
-    def __init__(self, n: int, s_min: int, infeasible_result: InfeasibleDist) -> None:
-        n_dec = infeasible_result.excess_required - infeasible_result.excess_available
-        n_inc = s_min - infeasible_result.excess_required
-        template = "No feasible distribution for workers (data set size: {}, s_min: {}).\nExcess available: {}, excess required: {}.\nIncrease n by {}, decrease n by {}, or decrease s_min"
-        msg = template.format(n, s_min, infeasible_result.excess_available,
-                              infeasible_result.excess_required, n_dec, n_inc)
         super().__init__(msg)
 
 
@@ -526,33 +511,6 @@ def get_employable_workers_subset(workers: List[Worker], s_min: int, n: int) -> 
 get_employable_workers = get_employable_workers_subset if USE_SUBSET else get_employable_workers_wip
 
 
-# TODO: Remove this, we don't get this kinda of error anymore
-def check_infeasible_dist(workers: List[Worker], n: int, s_min: int):
-    """
-    Checks the 'infeasible distribution' edge case as defined in the LaTeX doc.
-    This may no longer be relevant, now that get_employable_workers accounts for the InfeasibleWorkerCapacityError.
-    """
-    # Edge case: if s_min == 0, it's always feasible
-    if s_min == 0:
-        excess_available = sum(map(lambda w: w.s_max, workers))
-        excess_required = 0
-        return InfeasibleDist(True, excess_available, excess_required)
-    # Assume feasible by default
-    feasible = True
-    # Sort workers by s_max in descending order
-    sorted_workers = sorted(workers, key=lambda w: w.s_max, reverse=True)
-    # upper bound determines how many workers we can employ to meet s_min requirements for n data points
-    upper_bound = floor(n / s_min)
-    # in the first upper_bound workers, how much excess do we have? (we can handle upper_bound * s_min to sum_{i=1}^{upper_bound}(s_max) )
-    excess_available = sum([max(0, w.s_max - s_min)
-                           for w in sorted_workers[:upper_bound]])
-    # how many slices do we require above (s_min * upper_bound) to compute n?
-    excess_required = n % s_min
-    if excess_available < excess_required:
-        feasible = False
-    return InfeasibleDist(feasible, excess_available, excess_required)
-
-
 def assign_work(workers: List[Worker], data_set: List, beta: int, s_min: int) -> Tuple[List[int], Timing]:
     '''
     Assigns a data set to a list of workers by partitioning based on properties
@@ -563,8 +521,9 @@ def assign_work(workers: List[Worker], data_set: List, beta: int, s_min: int) ->
       [1]: timing/duration info
     '''
     # TIMING start
-    timing = [time.time_ns()]
-    duration = {}
+    duration = Timing(0, 0, 0, 0, 0, 0)
+    if ENABLE_NATIVE_TIMING:
+        timing = [round(time.time_ns() / 1000)]
 
     # derive some properties from arguments
     n = len(data_set)
@@ -581,23 +540,26 @@ def assign_work(workers: List[Worker], data_set: List, beta: int, s_min: int) ->
         raise InsufficientDataError(n, beta, s_min)
 
     # TIMING init
-    timing.append(time.time_ns())
-    duration["init"] = timing[-1] - timing[-2]
+    if ENABLE_NATIVE_TIMING:
+        timing.append(round(time.time_ns() / 1000))
+        duration["init"] = timing[-1] - timing[-2]
 
     # get employable workers (those having s_max >= s_min)
     employable = get_employable_workers(workers, s_min, n)
 
     # TIMING get_employable_workers
-    timing.append(time.time_ns())
-    duration["get_employable_workers"] = timing[-1] - timing[-2]
+    if ENABLE_NATIVE_TIMING:
+        timing.append(round(time.time_ns() / 1000))
+        duration["get_employable_workers"] = timing[-1] - timing[-2]
 
     k_employable = len(employable)
     # employable worker capacity = sum (s_max) over employable workers
     capacity = get_capacity(employable)
 
     # TIMING get_capacity
-    timing.append(time.time_ns())
-    duration["get_capacity"] = timing[-1] - timing[-2]
+    if ENABLE_NATIVE_TIMING:
+        timing.append(round(time.time_ns() / 1000))
+        duration["get_capacity"] = timing[-1] - timing[-2]
 
     # CHECK 2: num employable workers >= beta
     if k_employable < beta:
@@ -605,15 +567,6 @@ def assign_work(workers: List[Worker], data_set: List, beta: int, s_min: int) ->
     # CHECK 3: capacity >= n
     elif capacity < n:
         raise InsufficientCapacityError(n, capacity)
-    # CHECK 4: infeasible distribution
-    infeasible_dist = check_infeasible_dist(employable, n, s_min)
-
-    # TIMING check_infeasible_dist
-    timing.append(time.time_ns())
-    duration["check_infeasible_dist"] = timing[-1] - timing[-2]
-
-    if not infeasible_dist.feasible:
-        raise InfeasibleDistributionError(n, s_min, infeasible_dist)
 
     # IDs of workers that receive data
     assigned_workers = []
@@ -638,8 +591,9 @@ def assign_work(workers: List[Worker], data_set: List, beta: int, s_min: int) ->
         i_data += x
 
     # TIMING assign
-    timing.append(time.time_ns())
-    duration["assign"] = timing[-1] - timing[-2]
+    if ENABLE_NATIVE_TIMING:
+        timing.append(round(time.time_ns() / 1000))
+        duration["assign"] = timing[-1] - timing[-2]
 
     # Number of workers that received > 0 work
     num_workers_assigned = len(assigned_workers)
@@ -681,9 +635,10 @@ def assign_work(workers: List[Worker], data_set: List, beta: int, s_min: int) ->
         donor_worker_idx -= 1
 
     # TIMING reassign/end
-    timing.append(time.time_ns())
-    duration["reassign"] = timing[-1] - timing[-2]
-    duration["total"] = timing[-1] - timing[0]
+    if ENABLE_NATIVE_TIMING:
+        timing.append(round(time.time_ns() / 1000))
+        duration["reassign"] = timing[-1] - timing[-2]
+        duration["total"] = timing[-1] - timing[0]
 
     return assigned_workers, duration
 
@@ -713,7 +668,7 @@ def printProgressBar(iteration, total, prefix='', suffix='', decimals=1, length=
         print()
 
 
-def test_random(n_tests, seed=None, verbose=0, log=True, log_all=False, k_lim=100, s_max_lim=200, c_lim=20, s_min_factor=0.5) -> List[TestCase]:
+def test_random(n_tests, seed=None, verbose=0, log=True, log_all=False, k_lim=100, s_max_lim=200, c_lim=20, s_min_factor=0.5, n_factor=0.1) -> List[TestCase]:
     '''
     Generates n random tests.
 
@@ -752,9 +707,9 @@ def test_random(n_tests, seed=None, verbose=0, log=True, log_all=False, k_lim=10
     log_file = log_file_name + ".log"
     raw_log_file = log_file_name + ".raw.log"
 
-    if not log:
+    if not log and verbose >= 0:
         print("Logging disabled")
-    elif log and not log_all:
+    elif log and not log_all and verbose >= 0:
         print("Logging all disabled; will only give infeasible cases + summary info")
 
     # keep all generated InputSets
@@ -763,7 +718,6 @@ def test_random(n_tests, seed=None, verbose=0, log=True, log_all=False, k_lim=10
     infeasible = {
         ValueError.__name__: [],
         AssignmentError.__name__: [],
-        InfeasibleDistributionError.__name__: [],
         InfeasibleWorkerCapacityError.__name__: [],
         InsufficientWorkersError.__name__: [],
         InsufficientCapacityError.__name__: [],
@@ -771,15 +725,17 @@ def test_random(n_tests, seed=None, verbose=0, log=True, log_all=False, k_lim=10
     }
 
     for i_test in range(n_tests):
-        printProgressBar(i_test, n_tests, prefix='Progress:',
-                         suffix='Complete', length=80)
+        if verbose >= 0:
+            printProgressBar(i_test, n_tests, prefix='Progress:',
+                             suffix='Complete', length=80)
         # workers
-        k = random.randint(1, k_lim)
+        k = random.randint(k_lim // 2, k_lim)
         s_max = [random.randint(0, s_max_lim) for _ in range(k)]
         s_max_avg = mean(s_max)
-        c = [round(random.random() * 20, 2) for _ in range(k)]
+        c = [round(random.random() * c_lim, 2) for _ in range(k)]
         # data set
-        n = max(1, round(k * s_max_avg * random.random()))
+        n = random.randint(
+            max(1, floor(k * s_max_avg * n_factor)), ceil(k * s_max_avg))
         data_set = [i for i in range(n)]
         # params
         s_min = round(min(n // 8, s_max_lim * s_min_factor) * random.random())
@@ -811,7 +767,7 @@ def test_random(n_tests, seed=None, verbose=0, log=True, log_all=False, k_lim=10
                 print(workers)
                 print("\nAssigned workers:")
                 print(assigned)
-        except (InsufficientWorkersError, InsufficientCapacityError, InfeasibleDistributionError, InsufficientDataError, InfeasibleWorkerCapacityError, AssignmentError, ValueError) as e:
+        except (InsufficientWorkersError, InsufficientCapacityError, InsufficientDataError, InfeasibleWorkerCapacityError, AssignmentError, ValueError) as e:
             infeasible[e.__class__.__name__].append(i_test)
             error = repr(e)
             if verbose >= 1:
@@ -825,7 +781,6 @@ def test_random(n_tests, seed=None, verbose=0, log=True, log_all=False, k_lim=10
     feasible_tests = [x for x in enumerate(tests) if x[1].feasible]
     n_feasible = len(feasible_tests)
     feasible_pct = round(100 * n_feasible / max(n_tests, 1))
-    print("\nTests complete")
     info = [
         "test_random output log",
         "n_tests={}, seed={}, verbose={}, log={}, log_file={}".format(
@@ -837,10 +792,13 @@ def test_random(n_tests, seed=None, verbose=0, log=True, log_all=False, k_lim=10
             x[0], len(x[1])), infeasible.items())),
         "",
     ]
-    print("\n".join(list(info)))
+    if verbose >= 0:
+        print("\nTests complete")
+        print("\n".join(list(info)))
 
     if (log):
-        print("Writing logs...")
+        if verbose >= 0:
+            print("Writing logs...")
         with open(log_file, "w") as f:
             templ = "  TEST {}: {{\n{}\n  }}"
             if log_all:
@@ -855,14 +813,18 @@ def test_random(n_tests, seed=None, verbose=0, log=True, log_all=False, k_lim=10
                 info += map(lambda i: templ.format(i, tests[i].__str__(4)), l)
                 info.append("")
             f.writelines("\n".join(list(info)))
-            print("Wrote to log '{}'".format(log_file))
+
+            if verbose >= 0:
+                print("Wrote to log '{}'".format(log_file))
         if log_all:
             with open(raw_log_file, "w") as f:
                 templ = "TEST {}: {{\n{}\n}}"
                 raw_log = [templ.format(i, tests[i].__str__(2))
                            for i in range(n_tests)]
                 f.writelines("\n".join(list(raw_log)))
-                print("Wrote raw log dump to '{}'".format(raw_log_file))
+
+                if verbose >= 0:
+                    print("Wrote raw log dump to '{}'".format(raw_log_file))
 
     return tests
 
