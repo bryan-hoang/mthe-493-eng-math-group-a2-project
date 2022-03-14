@@ -7,7 +7,6 @@ verify_ssl = true
 axon-ecrg = "*"
 numpy = "*"
 torch = { version = "==1.9.0", markers = "platform_machine != 'arm64'" }
-torch_pi = { file = "https://drive.google.com/u/0/uc?id=1p9Sp5YmCJwIkmQIWkpuIkE4NgeYPOr-U&export=download", markers = "sys_platform == 'linux' and platform_machine == 'arm64'" }
 tqdm = "*"
 
 [dev-packages]
