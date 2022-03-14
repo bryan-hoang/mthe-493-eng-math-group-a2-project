@@ -67,7 +67,7 @@ def val_evaluation(net, x_test, y_test):
 
 		loss += criterion(y_hat, y_batch).item()
 		acc += get_accuracy(y_hat, y_batch).item()
-	
+
 	# normalizing the loss and accuracy
 	loss = loss/num_test_batches
 	acc = acc/num_test_batches

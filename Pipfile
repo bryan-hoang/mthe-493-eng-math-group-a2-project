@@ -1,0 +1,28 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[packages]
+axon-ecrg = "*"
+numpy = "*"
+torch = { version = "==1.9.0", markers = "platform_machine != 'arm64'" }
+torchvision = "*"
+tqdm = "*"
+
+[dev-packages]
+bandit = "*"
+black = "*"
+flake8 = "*"
+mypy = "*"
+pydocstyle = "*"
+pylint = "*"
+pytest = "*"
+pytest-asyncio = "*"
+
+[requires]
+python_version = "3.9"
+
+[pipenv]
+# To avoid installing `aiohttp 4.0.0a1` causing an incompatability with axon.
+allow_prereleases = false
