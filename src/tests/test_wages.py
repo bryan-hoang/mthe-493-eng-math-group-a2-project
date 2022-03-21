@@ -1,9 +1,17 @@
-from axon import discovery, client
 import asyncio
 
-nb_ip = '192.168.56.1'
+from axon import config, client, discovery
 
-async def main():
+nb_ip = None
+
+async def test_wages():
+	global nb_ip
+
+	# grabs notice board ip for discovery use
+	axon_local_ips = await discovery.broadcast_discovery(num_hosts=1, port=config.comms_config.notice_board_port)
+
+	nb_ip = axon_local_ips.pop()
+
 	# starts the RVL
 	await client.start_client()
 
@@ -29,12 +37,13 @@ async def main():
 	minwage_ret_coros = []
 	for w in workers:
 		minwage_ret_coros.append(w.rpcs.get_minimum_wage())
-    
+
     # wait for each worker to return wages
 	wages = await asyncio.gather(*minwage_ret_coros)
 
 	for index, w in enumerate(workers):
+		assert wages[index] == (index+1)*10
 		print("worker " + str(worker_ips[index]) + " has wage " + str(wages[index]))
 
 if (__name__ == '__main__'):
-	asyncio.run(main())
+	asyncio.run(test_wages())
