@@ -17,14 +17,17 @@ class Worker:
     id = 0
     s_max = 0
     c = 0
+    axon_worker_ref = None
+
     num_assigned = 0
     assigned_work = []
     cost = 0
 
-    def __init__(self, s_max: int, c: float, id=0) -> None:
+    def __init__(self, s_max: int, c: float, id=0, axon_worker_ref=None) -> None:
         self.s_max = s_max
         self.c = c
         self.id = id
+        self.axon_worker_ref = axon_worker_ref
 
     def assign(self, items: List) -> None:
         if len(items) > self.s_max:
