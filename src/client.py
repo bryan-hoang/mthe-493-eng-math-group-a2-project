@@ -89,9 +89,6 @@ async def main():
 
 	nb_ip = axon_local_ips.pop()
 
-	# starts the RVL
-	await client.start_client()
-
 	# find and connect to workers
 	worker_ips = discovery.get_ips(ip=nb_ip)
 
@@ -120,7 +117,7 @@ async def main():
 	s_min = 5
 
 	workers: List[Worker] = []
-	for i, w in axon_workers:
+	for i, w in enumerate(axon_workers):
 		ip = worker_ips[i]
 		s_max = data_allocation[i]
 		# get random wage between 1 and 20 (inclusive)
