@@ -1,24 +1,31 @@
-from typing import List, Tuple
 import time
+from typing import List, Tuple
 
-from model import Worker, Timing, InputSet
-from error import AssignmentError, InsufficientWorkersError, InsufficientDataError, InsufficientCapacityError, InfeasibleWorkerCapacityError
-from stats import Stats
-from utils import get_employable_workers, get_capacity
+from .error import (
+    AssignmentError,
+    InsufficientCapacityError,
+    InsufficientDataError,
+    InsufficientWorkersError,
+)
+from .model import InputSet, Timing, Worker
+from .stats import Stats
+from .utils import get_capacity, get_employable_workers
 
 # Should the timing in assign_work be enabled?
 ENABLE_NATIVE_TIMING = False
 
 
-def assign_work(workers: List[Worker], data_set: List, beta: int, s_min: int) -> Tuple[List[int], Timing]:
-    '''
+def assign_work(
+    workers: List[Worker], data_set: List, beta: int, s_min: int
+) -> Tuple[List[int], Timing]:
+    """
     Assigns a data set to a list of workers by partitioning based on properties
     of workers (s_max, c) and parameters of the algorithm (beta, s_min)
 
-    Returns tuple: 
+    Returns tuple:
       [0]: list of worker IDs that received non-zero work
       [1]: timing/duration info
-    '''
+    """
     # TIMING start
     duration = Timing(0, 0, 0, 0, 0, 0)
     if ENABLE_NATIVE_TIMING:
@@ -31,7 +38,8 @@ def assign_work(workers: List[Worker], data_set: List, beta: int, s_min: int) ->
     # CHECK 0: n > 0
     if n <= 0:
         raise ValueError(
-            "Must have at least one data element (n: {})".format(n))
+            "Must have at least one data element (n: {})".format(n)
+        )
     elif k <= 0:
         raise ValueError("Must have at least one worker (k: {})".format(k))
     # CHECK 1: n >= beta * s_min. If s_min is 0, we pretend it's 1
@@ -80,7 +88,7 @@ def assign_work(workers: List[Worker], data_set: List, beta: int, s_min: int) ->
         # otherwise, compute # to assign
         x = min(worker.s_max, remaining)
         # slice data_set
-        items = data_set[i_data: i_data + x]
+        items = data_set[i_data : i_data + x]
         worker.assign(items)
         # update state
         # If we were able to assign enough data to this worker to satisfy s_min
@@ -105,12 +113,15 @@ def assign_work(workers: List[Worker], data_set: List, beta: int, s_min: int) ->
         # check to make sure we still have a worker that can donate
         if donor_worker_idx < 0:
             raise AssignmentError(
-                "Unknown error occurred while attempting reassignment (ran out of workers that can donate)")
+                "Unknown error occurred while attempting reassignment (ran out of workers that can donate)"
+            )
         source = employable[donor_worker_idx]
         # grab some reassignable data from the last complete worker
         n_available = source.num_assigned - s_min
         # keep reassigning from the source until it has none left to donate, and we still need to donate
-        while n_available > 0 and num_complete_workers_assigned < max(num_workers_assigned, beta):
+        while n_available > 0 and num_complete_workers_assigned < max(
+            num_workers_assigned, beta
+        ):
             # next worker we'll reassign stuff to
             next_worker = employable[last_complete_worker_idx + 1]
             # calculate how much we'll reassign
@@ -158,10 +169,16 @@ if __name__ == "__main__":
     # some checks to ensure proper lengths
     if len(s_max) != k:
         raise ValueError(
-            "Invalid s_max list: expected length: {}; actual length: {}".format(k, len(s_max)))
+            "Invalid s_max list: expected length: {}; actual length: {}".format(
+                k, len(s_max)
+            )
+        )
     elif len(c) != k:
         raise ValueError(
-            "Invalid c list: expected length: {}; actual length: {}".format(k, len(c)))
+            "Invalid c list: expected length: {}; actual length: {}".format(
+                k, len(c)
+            )
+        )
 
     # instantiate workers
     workers = [Worker(s_max[i], c[i], i) for i in range(k)]

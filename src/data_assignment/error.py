@@ -12,7 +12,7 @@ class InsufficientDataError(Exception):
 
     def __init__(self, available: int, beta: int, s_min: int) -> None:
         template = "Not enough data to satisfy parameters (available: {}, required: {}). Decrease beta ({}) and/or s_min ({})"
-        msg = template.format(available, max(1, s_min)*beta, beta, s_min)
+        msg = template.format(available, max(1, s_min) * beta, beta, s_min)
         super().__init__(msg)
 
 

@@ -1,9 +1,8 @@
-from typing import List
 from itertools import combinations
+from typing import List
 
-from model import Worker
-from error import InfeasibleWorkerCapacityError
-
+from .error import InfeasibleWorkerCapacityError
+from .model import Worker
 
 # Sets whether we use subset brute-force method or optimized method (WIP)
 USE_SUBSET = True
@@ -16,7 +15,10 @@ def get_capacity(workers: List[Worker]) -> int:
 # this is O(n), could be improved
 def insert_to_sorted_list(l: List, x, key=None):
     if not key:
-        def key(x): return x
+
+        def key(x):
+            return x
+
     x_val = key(x)
     for i in range(len(l)):
         if key(l[i]) > x_val:
@@ -24,7 +26,9 @@ def insert_to_sorted_list(l: List, x, key=None):
     l.insert(i, x)
 
 
-def get_employable_workers_wip(workers: List[Worker], s_min: int, n: int) -> List[Worker]:
+def get_employable_workers_wip(
+    workers: List[Worker], s_min: int, n: int
+) -> List[Worker]:
     """This is a work-in-progress, which hopefully will be able to be optimized more than the subset brute-force method"""
     pass
     # eligible = [w for w in workers if w.s_max > 0 and w.s_max >= s_min]
@@ -49,7 +53,7 @@ def get_employable_workers_wip(workers: List[Worker], s_min: int, n: int) -> Lis
 
     # return [w for w in workers if w.s_max > 0 and w.s_max >= s_min]
 
-    '''
+    """
     New idea: calculate the max_employable
     then, find the max_employable workers that have sum s_max >= n.
     This may be O(n!), unless we can optimize further
@@ -63,7 +67,7 @@ def get_employable_workers_wip(workers: List[Worker], s_min: int, n: int) -> Lis
 
     other thought:
     - calculate sum s_max for all subsets of max_employable workers
-    '''
+    """
     # max_employable = n // s_min
     # # it's important that these lists remain sorted by c
     # selected = eligible[:max_employable]
@@ -99,7 +103,9 @@ def get_employable_workers_wip(workers: List[Worker], s_min: int, n: int) -> Lis
     #         selected.insert(swap_idx, to_unselect)
 
 
-def get_employable_workers_subset(workers: List[Worker], s_min: int, n: int) -> List[Worker]:
+def get_employable_workers_subset(
+    workers: List[Worker], s_min: int, n: int
+) -> List[Worker]:
     """
     This version uses combinatorics to brute-force, considering sum (s_max) over all subsets of length max_employable.
     Returns subset of length min(len(eligible), k_employable) with lowest c.
@@ -129,11 +135,22 @@ def get_employable_workers_subset(workers: List[Worker], s_min: int, n: int) -> 
     raise InfeasibleWorkerCapacityError(k_eligible, n, s_min)
 
 
-get_employable_workers = get_employable_workers_subset if USE_SUBSET else get_employable_workers_wip
+get_employable_workers = (
+    get_employable_workers_subset if USE_SUBSET else get_employable_workers_wip
+)
 
 
 # Print iterations progress
-def printProgressBar(iteration, total, prefix='', suffix='', decimals=1, length=100, fill='█', printEnd="\r"):
+def printProgressBar(
+    iteration,
+    total,
+    prefix="",
+    suffix="",
+    decimals=1,
+    length=100,
+    fill="█",
+    printEnd="\r",
+):
     """
     Call in a loop to create terminal progress bar
     @params:
@@ -146,11 +163,12 @@ def printProgressBar(iteration, total, prefix='', suffix='', decimals=1, length=
         fill        - Optional  : bar fill character (Str)
         printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
     """
-    percent = ("{0:." + str(decimals) + "f}").format(100 *
-                                                     (iteration / float(total)))
+    percent = ("{0:." + str(decimals) + "f}").format(
+        100 * (iteration / float(total))
+    )
     filledLength = int(length * iteration // total)
-    bar = fill * filledLength + '-' * (length - filledLength)
-    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end=printEnd)
+    bar = fill * filledLength + "-" * (length - filledLength)
+    print(f"\r{prefix} |{bar}| {percent}% {suffix}", end=printEnd)
     # Print New Line on Complete
     if iteration == total:
         print()
