@@ -3,7 +3,15 @@ from common import TwoNN, set_parameters, get_accuracy
 from torchvision.datasets import MNIST
 import torchvision.transforms as transforms
 import time
-import asyncio, torch
+import asyncio
+import torch
+import random
+from typing import List
+from math import ceil
+
+from data_assignment.assign import assign_work
+from data_assignment.error import AssignmentError, InfeasibleWorkerCapacityError, InsufficientCapacityError, InsufficientDataError, InsufficientWorkersError
+from data_assignment.model import Worker
 
 num_global_cycles = 10
 nb_ip = None
@@ -82,68 +90,75 @@ async def main():
 
 	nb_ip = axon_local_ips.pop()
 
-	# starts the RVL
-	await client.start_client()
-
 	# find and connect to workers
 	worker_ips = discovery.get_ips(ip=nb_ip)
 
 	# instantiates remote worker objects, with which we can call rpcs on each worker
-	workers = [client.RemoteWorker(ip) for ip in worker_ips]
-
-	print('setting worker wages')
-
-	# Hardcode experiments for wages and max price, both normalized per batch
-	job_max_price_per_batch = 10
-	wages_per_batch = [5]
-	paid_out_for_job = [0]
-
-	# set wages in each worker
-	minwage_coros = []
-	for index, w in enumerate(workers):
-		minwage_coros.append(w.rpcs.set_minimum_wage(wages_per_batch[index]))
-
-	await asyncio.gather(*minwage_coros)
+	axon_workers = [client.RemoteWorker(ip) for ip in worker_ips]
 
 	print('benchmarking workers')
 
 	# start benchmarks in each worker
 	benchmark_coros = []
-	for w in workers:
+	for w in axon_workers:
 		benchmark_coros.append(w.rpcs.benchmark(1000))
 
 	# wait for each worker to finish their benchmark
 	benchmark_scores = await asyncio.gather(*benchmark_coros)
-
-	print('sending data to workers')
 
 	# calculates the number of data batches each worker should be assigned
 	total_batches = 6000//BATCH_SIZE
 	normalizing_factor = total_batches/sum(benchmark_scores)
 	data_allocation = [round(normalizing_factor*b) for b in benchmark_scores]
 
-	# assigns data to each worker
-	data_allocation_coros = []
-	for index, w in enumerate(workers):
-		num_batches = data_allocation[index]
+	# TODO: Data assignment params (beta, s_min) must be inputs to the system
+	# beta denotes the minimum number of workers that must be assigned non-zero work
+	beta = 1
+	# s_min denotes the minimum quantity of work that must be assigned to a worker, if it is receiving non-zero slices
+	s_min = 5
 
-		# FUTURE REFERENCE - Additional optimization code will go here
-		if wages_per_batch[index] < job_max_price_per_batch:
-			# If wage is acceptable, assign the appropriate number of batches and charge the "wallet"
-			# gets a bunch of random indices of data samples
-			indices = torch.randperm(x_train.shape[0])[0: num_batches*BATCH_SIZE]
-			paid_out_for_job[index] = wages_per_batch[index]*num_batches
-		else:
-			# If wage is too much, do not assign any data
-			indices = torch.randperm(x_train.shape[0])[0: 0]
+	workers: List[Worker] = []
+	for i, w in enumerate(axon_workers):
+		ip = worker_ips[i]
+		s_max = data_allocation[i]
+		# get random wage between 1 and 20 (inclusive)
+		# TODO: Set this to something deterministic/repeatable
+		wage = random.randint(1, 20)
+		new_worker = Worker(s_max, wage, ip, w, BATCH_SIZE)
+		workers.append(new_worker)
 
-		x_data = x_train[indices]
-		y_data = y_train[indices]
+	print('setting worker wages')
 
-		data_allocation_coros.append(w.rpcs.set_training_data(x_data, y_data))
+	# set wages in each worker
+	minwage_coros = []
+	for w in workers:
+		minwage_coros.append(w.axon_worker_ref.rpcs.set_minimum_wage(w.c))
 
-	# waits for data to be sent to workers
-	await asyncio.gather(*data_allocation_coros)
+	await asyncio.gather(*minwage_coros)
+
+	print('sending data to workers')
+
+	# The Worker model assumes we partition the entire dataset amongst workers.
+	# Since there's an x/y data set, I'll assume we can treat the indices of data elements as the dataset
+	# for assign_work. We can later extract that data before assigning work (set_training_data call)
+    # TODO: for Jack: this is where we set the 'global dataset'
+	n_data = x_train.shape[0]
+	dataset = [x for x in range(n_data)]
+	allocations_pending = []
+	try:
+		[employed_workers, assignment_timing_stats] = assign_work(workers, dataset, beta, s_min)
+		print("Assigning data to {} / {} workers".format(len(employed_workers), len(workers)))
+		for w in workers:
+			if w.id in employed_workers:
+                # TODO: for Jack: ...and this is where we extract the actual training dataset from the global dataset + assigned_work
+				x_data = x_train[w.assigned_work]
+				y_data = y_train[w.assigned_work]
+				allocations_pending.append(w.axon_worker_ref.rpcs.set_training_data(x_data, y_data))
+	except (InsufficientWorkersError, InsufficientCapacityError, InsufficientDataError, InfeasibleWorkerCapacityError, AssignmentError, ValueError) as e:
+		print("Infeasible")
+		raise(e)
+
+	await asyncio.gather(*allocations_pending)
 
 	# evaluate parameters
 	loss, acc = val_evaluation(net, x_test, y_test)
@@ -160,7 +175,7 @@ async def main():
 		# local updates
 		local_update_coros = []
 		for w in workers:
-			local_update_coros.append(w.rpcs.local_update(list(net.parameters())))
+			local_update_coros.append(w.axon_worker_ref.rpcs.local_update(list(net.parameters())))
 
 		# waits for local updates to complete
 		worker_params = await asyncio.gather(*local_update_coros)
@@ -182,17 +197,23 @@ async def main():
 
 	timing_logs_coros = []
 	for w in workers:
-		timing_logs_coros.append(w.rpcs.return_and_clear_timing_logs())
+		timing_logs_coros.append(w.axon_worker_ref.rpcs.return_and_clear_timing_logs())
 
 	# wait for timing logs to be returned from each worker
 	timing_logs = await asyncio.gather(*timing_logs_coros)
 
+	# Worker model computes total cost as w.cost = ceil(w.num_assigned / w.batch_size) * w.c
+	total_cost = sum(map(lambda w: w.cost, workers))
+
+	# TODO: This should maybe be change to reference worker.id instead of the index (async evaluation might resolve in any order?)
 	for index, log in enumerate(timing_logs):
 		print('worker ' + str(index) + ' computed ' + str(len(log)) + ' batches in ' + str(sum(log)) + 's')
 	print('total elapsed time for job completion ' + str(elapsed_time))
-	for index, pay in enumerate(paid_out_for_job):
-		print('worker ' + str(index) + ' was payed ' + str(pay) + ' for computing ' + str(pay//wages_per_batch[index]) + ' batches')
-	print("total paid out: " + str(sum(paid_out_for_job)))
+	for w in workers:
+		template = "Worker {} assigned {} samples (= {} batches); total worker fee: {}"
+		msg = template.format(w.id, w.num_assigned, ceil(w.num_assigned / w.batch_size), w.cost)
+		print(msg)
+	print("Total fee: " + str(total_cost))
 
-if (__name__ == '__main__'):
+if __name__ == '__main__':
 	asyncio.run(main())

@@ -5,6 +5,7 @@ verify_ssl = true
 
 [packages]
 axon-ecrg = "*"
+matplotlib = "*"
 numpy = "*"
 torch = { version = "==1.9.0", markers = "platform_machine != 'aarch64'" }
 torch_pi = { file = "https://github.com/KumaTea/pytorch-aarch64/releases/download/v1.9.0/torch-1.9.0-cp39-cp39-linux_aarch64.whl", markers = "platform_machine == 'aarch64'" }
@@ -16,6 +17,8 @@ tqdm = "*"
 bandit = "*"
 black = "*"
 flake8 = "*"
+ipykernel = "*"
+matplotlib = "*"
 mypy = "*"
 pydocstyle = "*"
 pylint = "*"
