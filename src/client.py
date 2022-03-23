@@ -7,6 +7,7 @@ import asyncio
 import torch
 import random
 from typing import List
+from math import ceil
 
 from data_assignment.assign import assign_work
 from data_assignment.error import AssignmentError, InfeasibleWorkerCapacityError, InsufficientCapacityError, InsufficientDataError, InsufficientWorkersError
@@ -123,7 +124,7 @@ async def main():
 		# get random wage between 1 and 20 (inclusive)
 		# TODO: Set this to something deterministic/repeatable
 		wage = random.randint(1, 20)
-		new_worker = Worker(s_max, wage, ip, w)
+		new_worker = Worker(s_max, wage, ip, w, BATCH_SIZE)
 		workers.append(new_worker)
 
 	print('setting worker wages')
@@ -140,6 +141,7 @@ async def main():
 	# The Worker model assumes we partition the entire dataset amongst workers.
 	# Since there's an x/y data set, I'll assume we can treat the indices of data elements as the dataset
 	# for assign_work. We can later extract that data before assigning work (set_training_data call)
+    # TODO: for Jack: this is where we set the 'global dataset'
 	n_data = x_train.shape[0]
 	dataset = [x for x in range(n_data)]
 	allocations_pending = []
@@ -148,13 +150,13 @@ async def main():
 		print("Assigning data to {} / {} workers".format(len(employed_workers), len(workers)))
 		for w in workers:
 			if w.id in employed_workers:
-				# TODO: I'm not sure if this is valid (w.assigned_work will be a List[int], x/y_train is a Tensor)
+                # TODO: for Jack: ...and this is where we extract the actual training dataset from the global dataset + assigned_work
 				x_data = x_train[w.assigned_work]
 				y_data = y_train[w.assigned_work]
 				allocations_pending.append(w.axon_worker_ref.rpcs.set_training_data(x_data, y_data))
 	except (InsufficientWorkersError, InsufficientCapacityError, InsufficientDataError, InfeasibleWorkerCapacityError, AssignmentError, ValueError) as e:
 		print("Infeasible")
-		print(e)
+		raise(e)
 
 	await asyncio.gather(*allocations_pending)
 
@@ -200,9 +202,7 @@ async def main():
 	# wait for timing logs to be returned from each worker
 	timing_logs = await asyncio.gather(*timing_logs_coros)
 
-	# TODO: I may have messed up the calculation for batches/total cost.
-	# Worker model computes total cost as w.cost = w.num_assigned * w.c
-	# However if each x/y_train data point is 'trained' more than once, we'll be off by a factor
+	# Worker model computes total cost as w.cost = ceil(w.num_assigned / w.batch_size) * w.c
 	total_cost = sum(map(lambda w: w.cost, workers))
 
 	# TODO: This should maybe be change to reference worker.id instead of the index (async evaluation might resolve in any order?)
@@ -210,8 +210,10 @@ async def main():
 		print('worker ' + str(index) + ' computed ' + str(len(log)) + ' batches in ' + str(sum(log)) + 's')
 	print('total elapsed time for job completion ' + str(elapsed_time))
 	for w in workers:
-		print('worker ' + str(w.id) + ' was payed ' + str(w.cost) + ' for computing ' + str(w.num_assigned) + ' batches')
-	print("total paid out: " + str(total_cost))
+		template = "Worker {} assigned {} samples (= {} batches); total worker fee: {}"
+		msg = template.format(w.id, w.num_assigned, ceil(w.num_assigned / w.batch_size), w.cost)
+		print(msg)
+	print("Total fee: " + str(total_cost))
 
 if __name__ == '__main__':
 	asyncio.run(main())

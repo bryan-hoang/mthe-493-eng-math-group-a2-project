@@ -1,4 +1,5 @@
 from typing import List, NamedTuple, Union
+from math import ceil
 
 from .error import AssignmentError
 
@@ -17,6 +18,7 @@ class Worker:
     id = 0
     s_max = 0
     c = 0
+    batch_size = 1
     axon_worker_ref = None
 
     num_assigned = 0
@@ -24,12 +26,13 @@ class Worker:
     cost = 0
 
     def __init__(
-        self, s_max: int, c: float, id=0, axon_worker_ref=None
+        self, s_max: int, c: float, id=0, axon_worker_ref=None, batch_size=1
     ) -> None:
         self.s_max = s_max
         self.c = c
         self.id = id
         self.axon_worker_ref = axon_worker_ref
+        self.batch_size = batch_size
 
     def assign(self, items: List) -> None:
         if len(items) > self.s_max:
@@ -40,7 +43,7 @@ class Worker:
             )
         self.assigned_work = items
         self.num_assigned = len(items)
-        self.cost = self.c * len(items)
+        self.cost = self.c * ceil(len(items) / self.batch_size)
 
     def reassign_from(self, source: "Worker", n: int, s_min: int) -> None:
         """Reassigns n assigned elements from source to self"""
