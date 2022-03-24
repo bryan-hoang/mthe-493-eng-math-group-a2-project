@@ -1,18 +1,17 @@
 .PHONY: all
 all: install
 
-# Installing project dependencies.
+.PHONY: pipenv
+pipenv:
+	pip install pipenv
+
 .PHONY: install
 install: pipenv
 	pipenv install
 	sudo apt install -y libopenblas-dev
 
-.PHONY: pipenv
-pipenv:
-	pip install pipenv
-
 .PHONY: install-dev
-install-dev: install
+install-dev: pipenv
 	pipenv install --dev
 
 .PHONY: test
