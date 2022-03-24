@@ -1,5 +1,6 @@
-import axon
 import socket
+
+import axon
 
 hostname = socket.gethostname()
 local_ip = socket.gethostbyname(hostname)
