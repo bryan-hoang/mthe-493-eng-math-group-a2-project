@@ -96,11 +96,10 @@ The package has a [CLI command-line interface](https://github.com/theskumar/pyth
 
 ## Tests
 
-Describe and show how to run the tests with code examples.
-Explain what these tests test and why.
+The project is set up to use [pytest](https://github.com/pytest-dev/pytest#readme) to detect and run all test files. `make test` is a recipe that will run the tests naively under the [src/tests](src/tests) folder.
 
 ```shell
-Give an example
+make test
 ```
 
 ## Style guide
