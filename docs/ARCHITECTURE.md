@@ -17,14 +17,27 @@ flowchart LR
     Client<-->|Deploy work|w
 ```
 
-Here's a sequence diagram of the events that occur while training on the network:
+Here's a sequence diagram of the events that occur during a typical experiment:
 
 ```mermaid
 sequenceDiagram
-    Worker(s)->>Noticeboard: Sign in
+    autonumber
+    participant C as Client
+    participant W as Worker(s)
+    participant N as Noticeboard
+    W->>N: Sign in for discovery
+    C->>N: Request IP addresses of Worker(s)
+    N->>C: Respond with IP addresses of Worker(s)
+    C->>+W: Deploy benchmarking work
+    W->>-C: Return benchmarking results
+    C->>+W: Distribute data optimally given constraints
+    loop Every global iteration
+        C->W: Perform local updates
+    end
+    W->>-C: Return and aggregate results
 ```
 
-On the highest level, this project uses [axon-ecrg](https://github.com/DuncanMays/axon-ECRG#readme) to create a proof of concept framework for parallelizing work through distributed computing which optimizes the amount of data sent to each worker.
+On the highest level, this project uses [axon-ecrg](https://github.com/DuncanMays/axon-ECRG#readme) to create a proof of concept framework for parallelizing work through distributed computing, which aims to optimize the amount of data sent to each worker.
 
 ## Code Map
 
