@@ -1,0 +1,36 @@
+\providecommand{\main}{..}
+\documentclass[../mthe-493-final-project.tex]{subfiles}
+
+% Describe how to approach design problem as linear programming problem. Introduce applicable algorithms, citing research.
+
+\begin{document}
+    \chapter{Contemporary Optimization Techniques}
+    \label{ch:contemporary-optimization}
+    
+    A review of contemporary optimization problem classifications are identified below, so as to provide context for the optimization problem as stated in the problem description. (TODO: Insert ref)
+    
+    % \section{Convex Optimization}
+    % \label{sec:Convex Optimization}
+
+    % \subsection{Linear Programming}
+    % \label{ssec:Linear Programming}
+
+    % \subsection{Integer Linear Programming}
+    % \label{ssec:Linear Programming}
+    
+    \section{Constrained Optimization}
+    \label{sec:Constrained Optimization}
+    
+    A constrained optimization problem is an optimization problem in which the objective function $f$ must be minimized subject to \textit{hard constraints} $g_i$ and $h_j$, for $i=1,...,n$ and $j=1,...,m$.
+    \[ \min \ f(\mathbf{x}) \]
+    subject to
+    \begin{align*}
+        g_i(\mathbf{x}) = c_i & \ & \text{for} \ i = 1,...,n \ \textit{equality constraints} \\
+        h_j(\mathbf{x}) \geq d_j & \ & \text{for} \ j = 1,...,m \ \textit{inequality constraints} \\
+    \end{align*}
+    
+    jot notes:
+    - write out explicitly what our objective function and (in)equality constraints are
+    - demonstrate that our objective function is linear in $\mathbf{x}$
+    
+\end{document}

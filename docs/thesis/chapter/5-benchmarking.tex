@@ -1,0 +1,47 @@
+\providecommand{\main}{..}
+\documentclass[../mthe-493-final-project.tex]{subfiles}
+
+% Literature review on benchmarking, sourced primarily from Duncan's work
+
+\begin{document}
+    \chapter{Benchmarking}
+    \label{ch:benchmarking}
+    
+    \section{Cycle Time \& Benchmarks}
+    
+    TODO: Need to make this section more formal, and include proper citations to Duncan's work
+    
+    As specified by Duncan's work, each worker $w_i$ will be benchmarked to estimate
+    
+    \begin{enumerate}
+        \item an \textit{upload/download rate}, $b_i$
+        \item a \textit{sample compute rate}, $C_i$
+    \end{enumerate}
+    
+    Each worker also has a \textit{fee} to compute a sample, $c_i$. Together, we can define the following quantities:
+    
+    \begin{itemize}
+        \item \textit{Subjob download time}, $t^d_i$, which is a function of $s_i$
+            \[t^d_i = \frac{P_m + P_d s_i}{b_i}\]
+        \item \textit{Subjob compute time}, $t^c_i$, which is a function of $s_i$
+            \[t^c_i = \frac{\tau s_i}{C_i}\]
+        \item \textit{Subjob upload time}, $t^u_i$, which is fixed for a given job
+            \[t^u_i = \frac{P_m}{b_i}\]
+    \end{itemize}
+    
+    A worker's \textit{global cycle time} to compute a subjob is
+    
+    \[t_i = t^d_i + t^c_i + t^u_i\]
+    
+    The upper bound on training time yields an inequality
+    
+    \[t_i < T \quad \forall w_i \in \mathbf{W}\]
+    
+    from which an upper bound on \textit{subjob size} is derived
+    
+    \[s^{max}_i < \frac{T - \frac{2 P_m}{b_i}}{\frac{\tau}{C_i} - \frac{P_d}{b_i}}\]
+    
+    Note that these details are internal to Duncan's research and implementation. We intend to use this implementation to determine $s^{max}_i$.
+
+    
+\end{document}

@@ -1,0 +1,51 @@
+\documentclass[
+    draft,
+    final,
+]{../mthe-report}
+
+\usepackage{../mthe-report}
+
+\title{\textbf{Optimization of Data Allocation with Training Time Constraints in Heterogeneous Edge Learning}}
+
+\author{
+    Bryan Hoang\\
+    Jack Malloch\\
+    Jared McGrath\\
+    Edan Parker\\
+    Michael Treagus
+}
+
+\date{\today}
+
+\begin{document}
+    \maketitle
+    \thispagestyle{empty}
+    \newpage
+    \frontmatter
+    \tableofcontents
+    \listoffigures
+    % \listoftables
+
+    \mainmatter{}
+    \subfile{chapter/1-introduction}
+    \subfile{chapter/2-problem-description}
+    % literature reviews
+    \subfile{chapter/3-edge-learning}
+    \subfile{chapter/4-linear-programming}
+    \subfile{chapter/5-benchmarking}
+    % design
+    \subfile{chapter/6-network-implementation}
+    \subfile{chapter/7-data-allocation-optimization}
+    \subfile{chapter/8-edge-learning-framework}
+    %results
+    \subfile{chapter/9-optimization-results}
+    \subfile{chapter/10-analysis}
+    \subfile{chapter/11-engineering-impact}
+    \subfile{chapter/12-recommendations}
+    \subfile{chapter/13-conclusion}
+
+    \backmatter{}
+    \appendix
+    % \subfile{appendices/a-notation}
+    % \subfile{appendices/b-glossary}
+\end{document}

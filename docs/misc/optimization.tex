@@ -1,0 +1,213 @@
+\documentclass[
+    draft,
+    final,
+]{article}
+
+\usepackage{../mthe-report}
+
+% \addbibresource{\main/bibliography.bib}
+
+\title{\textbf{Problem Definition}}
+\author{
+    Bryan Hoang\\
+    Jack Malloch\\
+    Jared McGrath\\
+    Edan Parker\\
+    Michael Treagus
+}
+\date{\today}
+
+\begin{document}
+    \maketitle
+    \thispagestyle{empty}
+    \newpage
+    
+    \section{Background}
+    
+    We introduce a network with
+    
+    \begin{itemize}
+        \item \textit{Manager} $m$
+        \item Set of \textit{workers} $\mathbf{W} = \{w_1, ..., w_k\}$, $\vert\mathbf{W}\vert = k$
+        \item A \textit{job}, $J$, determined by the manager and consisting of the tuple $J = (D, f)$
+            \begin{itemize}
+                \item Data set $D = \{d_1, ..., d_n\}$, $\vert D\vert = n$. In the context of edge learning, each datum is a \textit{sample} of uniform size $P_d$
+                \item Work function $f: D \rightarrow \mathbf{M}$ where $\mathbf{M}$ is the output space of (trained) model parameters. For a given job, model parameters have a fixed size $P_m$
+            \end{itemize}
+        \item A fixed \textit{number of training iterations} for a given job, $\tau$
+        \item A fixed upper bound on \textit{training time}, $T$
+    \end{itemize}
+    
+    We define the set of homogeneous \textit{slices} of job $J$ to be 
+    
+    \[S = D \times \{f\} = \{(d_1, f), ..., (d_k, f)\}\]
+    
+    A \textit{subjob} is a subset of slices which is assignable to a worker
+    
+    \[D_i \subset S, \quad \vert D_i \vert = x_i\]
+    
+    The purpose of our system is to assign disjoint subjobs to workers such that the subjobs form a partition of $D$:
+    
+    \[D = \bigcup\limits_{w_j \in \mathbf{W}} D_j\]
+    
+    The set of assigned workers and partition is selected so as to minimize the total paid out in fees, subject to some constraints:
+    
+    \begin{itemize}
+        \item \textit{Minimum worker assignment}, $\beta$, is a parameter of the system. This parameter ensures a minimum number of workers are assigned work, i.e.,
+            \[\beta \leq \vert \mathbf{W'} \vert \leq k\]
+            where $\mathbf{W'}$ denotes the subset of workers whose assigned subjob is non-empty
+        \item \textit{Minimum assigned work}, $s^{min}$, is also a parameter of the system. It indicates the minimum quantity of slices that must be assigned to a worker. This ensures that workers do not compute too few slices to be effective in an application like federated learning.
+        \item The total time to compute job $J$ is less than or equal to the upper bound on training time, $T$
+    \end{itemize}
+    
+    \section{Cycle Time \& Benchmarks}
+    
+    As specified by Duncan's work, each worker $w_i$ will be benchmarked to estimate
+    
+    \begin{enumerate}
+        \item an \textit{upload/download rate}, $b_i$
+        \item a \textit{sample compute rate}, $C_i$
+    \end{enumerate}
+    
+    Each worker also has a \textit{fee} to compute a sample, $c_i$. Together, we can define the following quantities:
+    
+    \begin{itemize}
+        \item \textit{Subjob download time}, $t^d_i$, which is a function of $s_i$
+            \[t^d_i = \frac{P_m + P_d s_i}{b_i}\]
+        \item \textit{Subjob compute time}, $t^c_i$, which is a function of $s_i$
+            \[t^c_i = \frac{\tau s_i}{C_i}\]
+        \item \textit{Subjob upload time}, $t^u_i$, which is fixed for a given job
+            \[t^u_i = \frac{P_m}{b_i}\]
+    \end{itemize}
+    
+    A worker's \textit{global cycle time} to compute a subjob is
+    
+    \[t_i = t^d_i + t^c_i + t^u_i\]
+    
+    The upper bound on training time yields an inequality
+    
+    \[t_i < T \quad \forall w_i \in \mathbf{W}\]
+    
+    from which an upper bound on \textit{subjob size} is derived
+    
+    \[s^{max}_i < \frac{T - \frac{2 P_m}{b_i}}{\frac{\tau}{C_i} - \frac{P_d}{b_i}}\]
+    
+    Note that these details are internal to Duncan's research and implementation. We intend to use this implementation to determine $s^{max}_i$.
+    
+    \section{Optimization}
+    
+    The optimization problem is to determine the size of subjobs which are to be assigned to workers such that total cost is minimized. Each worker $w_i \in \mathbf{W}$ has an associated unit data price $c_i$, an upper bound on data that can be computed in the allowed time $T$ of $s^{max}_i$. Denote the number of data elements assigned to $w_i$ by $x_i \in \mathbb{Z}_{\geq 0}$.
+    
+    Define the indicator function $f: \mathbb{Z}_{\geq 0} \rightarrow \{0, 1\}$ as
+    
+    \[f(x_i) = 
+        \begin{cases} 
+          1 & x_i > 0 \\
+          0 & x_i = 0
+       \end{cases}
+    \]
+    
+    Then, define the values $s_i$ as
+    
+    \[s_i = 
+        \begin{cases} 
+          s^{max}_i, & s^{max}_i \geq s^{min} \\
+          0, & otherwise
+       \end{cases}
+    \]
+    
+    % We have to take care in checking whether or not a system has a feasible solution; this depends on k, \Beta, and the s_i of all workers. 
+    % If \Beta > \sum f(s_i), there is no feasible solution
+    % If n > \sum s_i, there is no feasible solution
+    % We need to check for this in both the proof, and the implementation
+    
+    We then formulate this as an \textit{integer linear programming} (ILP) problem. The constrained optimization problem is given by
+    
+    \[ \min_{x_i \in \mathbb{Z}_{\geq 0}} \ \sum_{i=1}^k x_i c_i \]
+    
+    subject to constraints
+
+    \begin{align*}
+        s^{min} \leq x_i &\leq s_i,\qquad \forall i \in \mathbf{W} \\
+        \sum_{i = 1}^k x_i &= n \\
+        \sum_{i = 1}^k f(x_i) &\geq \beta
+    \end{align*}
+    
+    % \section{Optimization (Vector Formulation)}
+    
+    % The optimization problem is to determine the size of subjobs which are to be assigned to workers. This is represented by the column vector 
+    
+    % \[\mathbf{x} \in \mathbb{Z}^k_{\geq 0}\]
+    
+    % We formulate this as an \textit{integer linear programming} (ILP) problem. Let $\mathbf{c}$ denote the vector of worker fees per slice, given by
+    
+    % \[\mathbf{c} = \tau [c_1 \ ... \ c_k]^T\]
+    
+    % Let $\mathbf{b}$ denote the vector of upper bounds on worker subjob size, given by
+    
+    % \[\mathbf{b} = [s^{max}_1 \ ... \ s^{max}_k]^T\]
+    
+    % The ILP problem is to solve 
+    
+    % \[{min}_{\mathbf{x} \in \mathbb{Z}^k_{\geq 0}} \langle \mathbf{c}, \mathbf{x} \rangle\]
+    
+    % subject to constraints
+    
+    % \[ I\mathbf{x} \leq \mathbf{b} \]
+    % \[ \norm{\mathbf{x}}_1 = n \]
+    % \[ \norm{\mathbf{x}}_0 \geq \beta \]
+    
+    \section{Edge Cases}
+    
+    \begin{enumerate}
+        \item If $n < s^{min} \cdot \beta$, the problem is infeasible because we don't have enough data to satisfy the $\beta$ and $s^{min}$ requirements
+        \item If $\beta > \sum_{i=1}^k f(s_i)$, the problem is infeasible because we don't have enough workers that can do at least $s^{min}$ work to meet $\beta$
+        \item If $n > \sum_{i=1}^k s_i$, the problem is infeasible because we don't have enough capacity to compute all data
+        \item Assume WLOG that $s_i \geq s_{i+1} \quad \forall i = 1, ..., k$ (i.e. sorted in descending order of $s_i$). If
+            \[ \sum_{i=1}^{ \lfloor \frac{n}{s^{min}} \rfloor }  \max\{0, s_i - s^{min}\} < n \pmod{s^{min}} \]
+            then we have an infeasible distribution. We can either:
+            \begin{itemize}
+                \item increase $n$ by $n \pmod{s^{min}} - \sum_{i=1}^{\lfloor \frac{n}{s^{min}} \rfloor} \max\{0, s_i - s^{min}\}$
+                \item decrease $n$ by $-n \pmod{s^{min}}$
+            \end{itemize}
+    \end{enumerate}
+    
+    \section{Implementation}
+    
+    As discussed in the midterm presentation, multiple ILP algorithms will be researched, implemented, tested, and evaluated. A preliminary list of algorithms includes
+    
+    \begin{enumerate}
+        \item LP relaxation of the ILP problem (e.g., simplex, dual simplex)
+        \item Branch and cut method with LP (e.g., simplex, dual simplex)
+        \item Hill climbing technique
+    \end{enumerate}
+    
+    \section{Heuristic Algorithm}
+    The following is a heuristic algorithm for achieving an optimal solution to the problem.
+    
+    \subsection*{Assumptions without loss of generality}
+    \begin{enumerate}
+        \item $s_i$, $s_{min}$ $n$, $\beta$ are nonnegative integers
+        \item $n \geq s_{min} \cdot \beta$ (There is enough data to satisfy distribution constraints)
+        \item $\sum_{i=1}^k s_i \geq n$ (Computational capacity exceeds size of dataset)
+        \item $\sum_{i=1}^k f(s_i) \geq \beta$ (There is a sufficient number of employable workers)
+        \item $ j \leq k$ is the number of workers where $s_i > 0$ and $1,...,j$ are the indices of those workers where $s_i > 0$. Otherwise rearrange the terms.
+        \item $\beta \leq j$
+        \item $0 \leq c_1 \leq c_2 \leq ... \leq c_j$ Otherwise rearrange the terms.
+    \end{enumerate}
+    
+    \subsection*{Procedure}
+    \begin{enumerate}
+        \item If \[ \sum_{i=1}^k s_i = n, \] then $x_i = s_i$, $i = 1,...,k$ is the optimal solution.
+        \item If \[\sum_{i=1}^k s_i > n,\] then let $\alpha = \beta$, and $x_i = s^{min}$ for $i = 1,...,\alpha$ and $x_i = 0$ for $i = \alpha + 1,...,k$.
+        \item If \begin{equation}
+                \label{eq:enough-workers}
+                n - \sum_{i=1}^\alpha x_i > \sum_{i=1}^\alpha (s_i^{max} - s^{min})\tag{$*$}
+                \end{equation}
+        then let $\alpha = \alpha + 1$ and set $x_{\alpha} = s^{min}$. Repeat until \eqref{eq:enough-workers} does not hold.
+        \item If \[ \sum_{i=1}^k x_i = n, \] then this is the optimal solution.
+        \item Set $l = 1$. Add 1 to $x_l$ until $x_l = s_l^{max}$, then let $l = l+1$ and repeat. Continue until \[ \sum_{i=1}^{\alpha} x_i = n \]. This yields the optimal solution.
+        
+    \end{enumerate}    
+    
+\end{document}
