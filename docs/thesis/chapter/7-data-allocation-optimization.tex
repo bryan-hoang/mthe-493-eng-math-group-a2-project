@@ -1,18 +1,17 @@
 \providecommand{\main}{..}
 \documentclass[../mthe-493-final-project.tex]{subfiles}
 
-%Algorithm implementation. Includes all tested algos and which was selected and why. Visualizes algo's approach to the optimum. Describes code implementation.
+% Algorithm implementation. Includes all tested algos and which was selected and why. Visualizes algo's approach to the optimum. Describes code implementation.
 
 \begin{document}
     \chapter{Data Allocation Optimization}
     \label{ch:data-allocation-optimization}
-    
+
     Note from Jared: I moved this here from chapter 2
-    
+
     \section{Qualifying Assumptions}
     The system is designed so that the following assumptions are met to ensure the feasibility of a solution to the optimization problem.
-    
-    
+
     \begin{enumerate}
         \item $k \geq \beta$ where $\beta$ is set as the minimum amount of workers to be distributed to.
         \item $n \geq s^{min} \cdot k$
@@ -20,32 +19,31 @@
         \item $n \leq \sum_{i=1}^k s_i$, ensuring there is enough combined compute capacity to accept the entire data set.
 
     \end{enumerate}
-    
+
     \section{Implementation}
-    
+
     As discussed in the midterm presentation, multiple ILP algorithms will be researched, implemented, tested, and evaluated. A preliminary list of algorithms includes
-    
+
     \begin{enumerate}
         \item LP relaxation of the ILP problem (e.g., simplex, dual simplex)
         \item Branch and cut method with LP (e.g., simplex, dual simplex)
         \item Hill climbing technique
     \end{enumerate}
-    
+
     \section{Heuristic Algorithm}
     The following is a heuristic algorithm for achieving an optimal solution to the problem.
-    
+
     \subsection*{Assumptions without loss of generality}
     \begin{enumerate}
         \item $s_i^{max}$, $s_{min}$, $n$, and $k$ are nonnegative integers.
         \item $0 \leq c_1 \leq c_2 \leq ... \leq c_k$ Otherwise rearrange the terms.
     \end{enumerate}
-    
+
     \subsection*{Procedure}
     \begin{enumerate}
         \item If \[ \sum_{i=1}^k s_i = n, \] then $x_i = s_i$, $i = 1,...,k$ is the optimal solution.
         \item If \[\sum_{i=1}^k s_i > n,\] then let $x_i = s^{min}$ for $i = 1,...,k$.
         \item Set $l = 1$. Add 1 to $x_l$ until $x_l = s_l^{max}$, then let $l = l+1$ and repeat. Continue until \[ \sum_{i=1}^{k} x_i = n \]. This yields the optimal solution.
-        
     \end{enumerate}
 
 \end{document}
