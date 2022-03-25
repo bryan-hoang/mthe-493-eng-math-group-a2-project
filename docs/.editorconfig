@@ -1,2 +1,5 @@
 [*]
 indent_size = 4
+
+[*.bib]
+indent_style = tab
