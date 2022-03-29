@@ -7,7 +7,7 @@ import asyncio
 import torch
 import random
 from typing import List
-from math import ceil
+from math import ceil, floor
 
 from data_assignment.assign import assign_work
 from data_assignment.error import AssignmentError, InfeasibleWorkerCapacityError, InsufficientCapacityError, InsufficientDataError, InsufficientWorkersError
@@ -16,6 +16,8 @@ from data_assignment.model import Worker
 num_global_cycles = 10
 nb_ip = None
 BATCH_SIZE = 32
+MAX_TIME = 800
+NUM_BENCHMARK = 500
 
 device = 'cpu'
 if torch.cuda.is_available(): device = 'cuda:0'
@@ -66,11 +68,9 @@ def val_evaluation(net, x_test, y_test):
 	acc = 0
 
 	net = net.to(device)
-
 	for batch_number in range(num_test_batches):
 		x_batch = x_test[BATCH_SIZE*batch_number : BATCH_SIZE*(batch_number+1)].to(device)
 		y_batch = y_test[BATCH_SIZE*batch_number : BATCH_SIZE*(batch_number+1)].to(device)
-
 		y_hat = net.forward(x_batch)
 
 		loss += criterion(y_hat, y_batch).item()
@@ -101,15 +101,15 @@ async def main():
 	# start benchmarks in each worker
 	benchmark_coros = []
 	for w in axon_workers:
-		benchmark_coros.append(w.rpcs.benchmark(1000))
+		benchmark_coros.append(w.rpcs.benchmark(NUM_BENCHMARK))
 
 	# wait for each worker to finish their benchmark
 	benchmark_scores = await asyncio.gather(*benchmark_coros)
 
 	# calculates the number of data batches each worker should be assigned
-	total_batches = 6000//BATCH_SIZE
-	normalizing_factor = total_batches/sum(benchmark_scores)
-	data_allocation = [round(normalizing_factor*b) for b in benchmark_scores]
+	# total_batches = (x_train.shape[0]//num_global_cycles)//BATCH_SIZE
+	# total_batches = 6000//BATCH_SIZE
+	s_max_batches = [floor(MAX_TIME*b) for b in benchmark_scores]
 
 	# TODO: Data assignment params (beta, s_min) must be inputs to the system
 	# beta denotes the minimum number of workers that must be assigned non-zero work
@@ -120,7 +120,7 @@ async def main():
 	workers: List[Worker] = []
 	for i, w in enumerate(axon_workers):
 		ip = worker_ips[i]
-		s_max = data_allocation[i]
+		s_max = s_max_batches[i] * BATCH_SIZE
 		# get random wage between 1 and 20 (inclusive)
 		# TODO: Set this to something deterministic/repeatable
 		wage = random.randint(1, 20)
@@ -151,14 +151,24 @@ async def main():
 		for w in workers:
 			if w.id in employed_workers:
                 # TODO: for Jack: ...and this is where we extract the actual training dataset from the global dataset + assigned_work
+				#idxs = torch.randperm(x_train.shape[0])[0:w.num_assigned]
+				#x_data = x_train[idxs]
+				#y_data = y_train[idxs]
 				x_data = x_train[w.assigned_work]
 				y_data = y_train[w.assigned_work]
+
 				allocations_pending.append(w.axon_worker_ref.rpcs.set_training_data(x_data, y_data))
 	except (InsufficientWorkersError, InsufficientCapacityError, InsufficientDataError, InfeasibleWorkerCapacityError, AssignmentError, ValueError) as e:
 		print("Infeasible")
 		raise(e)
 
 	await asyncio.gather(*allocations_pending)
+
+	# calc total number of samples assignefd
+	#total_batches = sum(map(lambda w: w.num_assigned // BATCH_SIZE, workers))
+	total_batches = x_train.shape[0]//BATCH_SIZE
+	normalizing_factor = total_batches/sum(benchmark_scores)
+	data_allocation = [round(normalizing_factor*b) for b in benchmark_scores]
 
 	# evaluate parameters
 	loss, acc = val_evaluation(net, x_test, y_test)
