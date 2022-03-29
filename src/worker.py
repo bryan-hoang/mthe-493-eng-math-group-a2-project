@@ -7,15 +7,12 @@ from axon import config, discovery, worker
 from tqdm import tqdm
 
 from common import TwoNN, set_parameters
+from environment import get_env_batch_size, get_env_device
 
 # the ip address of the notice board
 nb_ip = None
 
-BATCH_SIZE = 32
-
-device = "cpu"
-if torch.cuda.is_available():
-    device = "cuda:0"
+device = get_env_device()
 
 net = TwoNN()
 criterion = torch.nn.CrossEntropyLoss()
@@ -63,13 +60,13 @@ def benchmark(num_batches):
     print("running benchmark!")
     global net, criterion, device
 
+    BATCH_SIZE = get_env_batch_size()
+
     net.to(device)
     optimizer = get_optimizer(net)
 
     # creating random data
-    x_benchmark = torch.randn(
-        [BATCH_SIZE * num_batches, 784], dtype=torch.float32
-    )
+    x_benchmark = torch.randn([BATCH_SIZE * num_batches, 784], dtype=torch.float32)
     y_benchmark = torch.ones([BATCH_SIZE * num_batches], dtype=torch.long)
 
     # we now train the network on this random data and time how long it takes
@@ -106,6 +103,8 @@ def benchmark(num_batches):
 @worker.rpc(comms_pattern="duplex", executor="Thread")
 def local_update(central_model_params):
     global timing_logs
+
+    BATCH_SIZE = get_env_batch_size()
 
     start_time = time.time()
 

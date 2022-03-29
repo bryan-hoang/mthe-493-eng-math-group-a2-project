@@ -1,10 +1,10 @@
 import torch
 
+from environment import get_env_device
+
 # this file contains common utilities used by both worker and client
 
-device = "cpu"
-if torch.cuda.is_available():
-    device = "cuda:0"
+device = get_env_device()
 
 
 class TwoNN(torch.nn.Module):

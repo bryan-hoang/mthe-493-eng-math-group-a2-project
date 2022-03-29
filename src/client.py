@@ -2,12 +2,10 @@ import asyncio
 import random
 import time
 from math import ceil
-from os import environ
 from typing import List
 
 import torch
 from axon import client, config, discovery
-from dotenv import load_dotenv
 from torchvision import transforms
 from torchvision.datasets import MNIST
 
@@ -21,34 +19,22 @@ from data_assignment.error import (
     InsufficientWorkersError,
 )
 from data_assignment.model import Worker
+from environment import (
+    get_env_batch_size,
+    get_env_beta,
+    get_env_device,
+    get_env_num_global_cycles,
+    get_env_s_min,
+)
 
-# Load environment variables from `.env`.
-load_dotenv()
-
-
-# Denotes the minimum number of workers that must be assigned non-zero work.
-BETA = environ["BETA"]
-
-# Denotes the minimum quantity of work that must be assigned to a worker,
-# if it is receiving non-zero slices.
-S_MIN = environ["S_MIN"]
-
-num_global_cycles = 10
 nb_ip = None
-BATCH_SIZE = 32
 
-device = "cpu"
-if torch.cuda.is_available():
-    device = "cuda:0"
+device = get_env_device()
 
 # importing data
 test_transform = train_transform = transforms.Compose([transforms.ToTensor()])
-train_set = MNIST(
-    "./data", train=True, download=True, transform=train_transform
-)
-test_set = MNIST(
-    "./data", train=False, download=True, transform=test_transform
-)
+train_set = MNIST("./data", train=True, download=True, transform=train_transform)
+test_set = MNIST("./data", train=False, download=True, transform=test_transform)
 
 x_train_raw, y_train_raw = map(list, zip(*train_set))
 x_test_raw, y_test_raw = map(list, zip(*test_set))
@@ -85,6 +71,7 @@ def aggregate_parameters(param_list, weights):
 
 # gets the accuracy and loss of a neural net on testing data
 def val_evaluation(net, x_test, y_test):
+    BATCH_SIZE = get_env_batch_size()
 
     num_test_batches = x_test.shape[0] // BATCH_SIZE
 
@@ -115,6 +102,13 @@ def val_evaluation(net, x_test, y_test):
 
 async def main():
     global nb_ip
+
+    # ML-related params
+    BATCH_SIZE = get_env_batch_size()
+    NUM_GLOBAL_CYCLES = get_env_num_global_cycles()
+    # Data-assignment-related params
+    BETA = get_env_beta()
+    S_MIN = get_env_s_min()
 
     # grabs notice board ip for discovery use
     axon_local_ips = await discovery.broadcast_discovery(
@@ -208,8 +202,8 @@ async def main():
 
     start_time = time.time()
 
-    for i in range(num_global_cycles):
-        print("training index:", i, "out of", num_global_cycles)
+    for i in range(NUM_GLOBAL_CYCLES):
+        print("training index:", i, "out of", NUM_GLOBAL_CYCLES)
 
         # some workers don't have a GPU and the device that a tensor is on will be serialized, so we've gotta move the network to CPU before transmitting parameters to worker
         net.to("cpu")
@@ -241,9 +235,7 @@ async def main():
 
     timing_logs_coros = []
     for w in workers:
-        timing_logs_coros.append(
-            w.axon_worker_ref.rpcs.return_and_clear_timing_logs()
-        )
+        timing_logs_coros.append(w.axon_worker_ref.rpcs.return_and_clear_timing_logs())
 
     # wait for timing logs to be returned from each worker
     timing_logs = await asyncio.gather(*timing_logs_coros)
