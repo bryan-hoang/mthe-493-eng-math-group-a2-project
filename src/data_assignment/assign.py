@@ -32,7 +32,7 @@ def assign_work(
         timing = [round(time.time_ns() / 1000)]
 
     # derive some properties from arguments
-    n = len(data_set) // 32
+    n = len(data_set)
     k = len(workers)
 
     # CHECK 0: n > 0

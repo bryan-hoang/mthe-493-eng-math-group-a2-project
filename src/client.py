@@ -1,7 +1,7 @@
 import asyncio
 import random
 import time
-from math import ceil, floor
+from math import floor
 from typing import List
 
 import torch
@@ -138,19 +138,20 @@ async def main():
     # total_batches = 6000//BATCH_SIZE
     s_max_batches = [floor(MAX_TIME * b) for b in benchmark_scores]
 
-    # calculates the number of data batches each worker should be assigned
-    total_batches = 6000 // BATCH_SIZE
+    # calc total number of samples assigned
+    # total_batches = sum(map(lambda w: w.num_assigned // BATCH_SIZE, workers))
+    total_batches = x_train.shape[0] // BATCH_SIZE
     normalizing_factor = total_batches / sum(benchmark_scores)
     data_allocation = [round(normalizing_factor * b) for b in benchmark_scores]
 
     workers: List[Worker] = []
     for i, w in enumerate(axon_workers):
         ip = worker_ips[i]
-        s_max = s_max_batches[i] * BATCH_SIZE
+        s_max = s_max_batches[i]
         # get random wage between 1 and 20 (inclusive)
         # TODO: Set this to something deterministic/repeatable
         wage = random.randint(1, 20)
-        new_worker = Worker(s_max, wage, ip, w, BATCH_SIZE)
+        new_worker = Worker(s_max, wage, ip, w)
         workers.append(new_worker)
 
     print("setting worker wages")
@@ -164,12 +165,8 @@ async def main():
 
     print("sending data to workers")
 
-    # The Worker model assumes we partition the entire dataset amongst workers.
-    # Since there's an x/y data set, I'll assume we can treat the indices of data elements as the dataset
-    # for assign_work. We can later extract that data before assigning work (set_training_data call)
-    # TODO: for Jack: this is where we set the 'global dataset'
-    n_data = x_train.shape[0]
-    dataset = [x for x in range(n_data)]
+    # The Worker model assumes we partition the set of batches
+    dataset = [x for x in range(total_batches)]
     allocations_pending = []
     try:
         [employed_workers, assignment_timing_stats] = assign_work(
@@ -183,11 +180,11 @@ async def main():
         for w in workers:
             if w.id in employed_workers:
                 # TODO: for Jack: ...and this is where we extract the actual training dataset from the global dataset + assigned_work
-                # idxs = torch.randperm(x_train.shape[0])[0:w.num_assigned]
+                idxs = torch.randperm(x_train.shape[0])[0 : BATCH_SIZE * w.num_assigned]
                 # x_data = x_train[idxs]
                 # y_data = y_train[idxs]
-                x_data = x_train[w.assigned_work]
-                y_data = y_train[w.assigned_work]
+                x_data = x_train[idxs]
+                y_data = y_train[idxs]
 
                 allocations_pending.append(
                     w.axon_worker_ref.rpcs.set_training_data(x_data, y_data)
@@ -204,12 +201,6 @@ async def main():
         raise (e)
 
     await asyncio.gather(*allocations_pending)
-
-    # calc total number of samples assignefd
-    # total_batches = sum(map(lambda w: w.num_assigned // BATCH_SIZE, workers))
-    total_batches = x_train.shape[0] // BATCH_SIZE
-    normalizing_factor = total_batches / sum(benchmark_scores)
-    data_allocation = [round(normalizing_factor * b) for b in benchmark_scores]
 
     # evaluate parameters
     loss, acc = val_evaluation(net, x_test, y_test)
@@ -271,10 +262,8 @@ async def main():
         )
     print("total elapsed time for job completion " + str(elapsed_time))
     for w in workers:
-        template = "Worker {} assigned {} samples (= {} batches); total worker fee: {}"
-        msg = template.format(
-            w.id, w.num_assigned, ceil(w.num_assigned / w.batch_size), w.cost
-        )
+        template = "Worker {} assigned {} batches (= {} samples); total worker fee: {}"
+        msg = template.format(w.id, w.num_assigned, w.num_assigned * BATCH_SIZE, w.cost)
         print(msg)
     print("Total fee: " + str(total_cost))
 
