@@ -1,13 +1,15 @@
 import asyncio
 
+import pytest
 from axon import client, config, discovery
 
-nb_ip = None
 
-
+@pytest.mark.skip(
+    reason="Integration test for wages feature that requires scaffolding to"
+    " set up."
+)
 async def test_wages():
-    global nb_ip
-
+    """Test wages feature of system."""
     # grabs notice board ip for discovery use
     axon_local_ips = await discovery.broadcast_discovery(
         num_hosts=1, port=config.comms_config.notice_board_port
@@ -15,13 +17,11 @@ async def test_wages():
 
     nb_ip = axon_local_ips.pop()
 
-    # starts the RVL
-    await client.start_client()
-
     # find and connect to workers
     worker_ips = discovery.get_ips(ip=nb_ip)
 
-    # instantiates remote worker objects, with which we can call rpcs on each worker
+    # Instantiates remote worker objects, with which we can call rpcs on each
+    # worker.
     workers = [client.RemoteWorker(ip) for ip in worker_ips]
 
     print("setting worker wages")

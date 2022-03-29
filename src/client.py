@@ -2,10 +2,12 @@ import asyncio
 import random
 import time
 from math import ceil
+from os import environ
 from typing import List
 
 import torch
 from axon import client, config, discovery
+from dotenv import load_dotenv
 from torchvision import transforms
 from torchvision.datasets import MNIST
 
@@ -19,6 +21,17 @@ from data_assignment.error import (
     InsufficientWorkersError,
 )
 from data_assignment.model import Worker
+
+# Load environment variables from `.env`.
+load_dotenv()
+
+
+# Denotes the minimum number of workers that must be assigned non-zero work.
+BETA = environ["BETA"]
+
+# Denotes the minimum quantity of work that must be assigned to a worker,
+# if it is receiving non-zero slices.
+S_MIN = environ["S_MIN"]
 
 num_global_cycles = 10
 nb_ip = None
@@ -131,12 +144,6 @@ async def main():
     normalizing_factor = total_batches / sum(benchmark_scores)
     data_allocation = [round(normalizing_factor * b) for b in benchmark_scores]
 
-    # TODO: Data assignment params (beta, s_min) must be inputs to the system
-    # beta denotes the minimum number of workers that must be assigned non-zero work
-    beta = 1
-    # s_min denotes the minimum quantity of work that must be assigned to a worker, if it is receiving non-zero slices
-    s_min = 5
-
     workers: List[Worker] = []
     for i, w in enumerate(axon_workers):
         ip = worker_ips[i]
@@ -167,7 +174,7 @@ async def main():
     allocations_pending = []
     try:
         [employed_workers, assignment_timing_stats] = assign_work(
-            workers, dataset, beta, s_min
+            workers, dataset, BETA, S_MIN
         )
         print(
             "Assigning data to {} / {} workers".format(

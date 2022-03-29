@@ -18,19 +18,17 @@ make install
 
 on each machine to be used to install the python dependencies using `pipenv` and to ensure proper libraries are installed for `pytorch` to work.
 
-**Access the `pipenv` virtual environment using `pipenv shell` or `pipenv run <...>`**. Then to set up the system,
+**Access the `pipenv` virtual environment using `pipenv shell` or `pipenv run <command>`**. Then to set up the system,
 
-1. Start the notice board:
-
-   To start the notice board, run
+1. Start the notice board by running
 
    ```sh
    python src/notice_board.py
    ```
 
-1. Start the workers:
+   on a machine on the network.
 
-   Run
+1. Start the workers by running
 
    ```sh
    python src/worker.py
@@ -38,9 +36,16 @@ on each machine to be used to install the python dependencies using `pipenv` and
 
    on each machine that you would like to use as a worker.
 
-1. Start the client:
+1. Configure the client's parameters by running
 
-   Run
+   ```sh
+   dotenv set BETA <value>
+   dotenv set S_MIN <value>
+   ```
+
+   on the machine you would like to act as the orchestrator. See [Configuration](#configuration) for more details.
+
+1. Start the client by running
 
    ```sh
    python src/client.py
@@ -85,19 +90,18 @@ And again you'd need to tell what the previous code actually does.
 
 ## Configuration
 
-<!-- TODO(bryan-hoang): To alter test parameters. -->
+The project uses [python-dotenv](https://github.com/theskumar/python-dotenv#python-dotenv) to load environment variables from a `.env` file the [src/client.py](src/client.py) reads from to retrieve the `BETA` and `S_MIN` parameters.
 
-TBD.
+The package has a [CLI command-line interface](https://github.com/theskumar/python-dotenv#command-line-interface) to make settings the values in the `.env` file easier.
 
 ## Tests
 
-Describe and show how to run the tests with code examples.
-Explain what these tests test and why.
+The project is set up to use [pytest](https://github.com/pytest-dev/pytest#readme) to detect and run all test files. `make test` is a recipe that will run the tests naively under the [src/tests](src/tests) folder.
 
 ```shell
-Give an example
+make test
 ```
 
 ## Style guide
 
-[black](https://github.com/psf/black).
+[Black](https://github.com/psf/black).
