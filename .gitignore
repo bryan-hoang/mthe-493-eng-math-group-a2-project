@@ -166,3 +166,6 @@ cython_debug/
 
 # MNIST data from client training.
 data/MNIST
+
+# Log dumps from workers
+logs/*
