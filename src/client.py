@@ -1,7 +1,7 @@
 import asyncio
 import random
 import time
-from math import ceil
+from math import ceil, floor
 from typing import List
 
 import torch
@@ -28,6 +28,8 @@ from environment import (
 )
 
 nb_ip = None
+MAX_TIME = 800
+NUM_BENCHMARK = 500
 
 device = get_env_device()
 
@@ -79,7 +81,6 @@ def val_evaluation(net, x_test, y_test):
     acc = 0
 
     net = net.to(device)
-
     for batch_number in range(num_test_batches):
         x_batch = x_test[
             BATCH_SIZE * batch_number : BATCH_SIZE * (batch_number + 1)
@@ -87,7 +88,6 @@ def val_evaluation(net, x_test, y_test):
         y_batch = y_test[
             BATCH_SIZE * batch_number : BATCH_SIZE * (batch_number + 1)
         ].to(device)
-
         y_hat = net.forward(x_batch)
 
         loss += criterion(y_hat, y_batch).item()
@@ -124,14 +124,17 @@ async def main():
     axon_workers = [client.RemoteWorker(ip) for ip in worker_ips]
 
     print("benchmarking workers")
-
     # start benchmarks in each worker
     benchmark_coros = []
     for w in axon_workers:
-        benchmark_coros.append(w.rpcs.benchmark(1000))
+        benchmark_coros.append(w.rpcs.benchmark(NUM_BENCHMARK))
 
     # wait for each worker to finish their benchmark
     benchmark_scores = await asyncio.gather(*benchmark_coros)
+    # calculates the number of data batches each worker should be assigned
+    # total_batches = (x_train.shape[0]//num_global_cycles)//BATCH_SIZE
+    # total_batches = 6000//BATCH_SIZE
+    s_max_batches = [floor(MAX_TIME * b) for b in benchmark_scores]
 
     # calculates the number of data batches each worker should be assigned
     total_batches = 6000 // BATCH_SIZE
@@ -141,7 +144,7 @@ async def main():
     workers: List[Worker] = []
     for i, w in enumerate(axon_workers):
         ip = worker_ips[i]
-        s_max = data_allocation[i]
+        s_max = s_max_batches[i] * BATCH_SIZE
         # get random wage between 1 and 20 (inclusive)
         # TODO: Set this to something deterministic/repeatable
         wage = random.randint(1, 20)
@@ -178,8 +181,12 @@ async def main():
         for w in workers:
             if w.id in employed_workers:
                 # TODO: for Jack: ...and this is where we extract the actual training dataset from the global dataset + assigned_work
+                # idxs = torch.randperm(x_train.shape[0])[0:w.num_assigned]
+                # x_data = x_train[idxs]
+                # y_data = y_train[idxs]
                 x_data = x_train[w.assigned_work]
                 y_data = y_train[w.assigned_work]
+
                 allocations_pending.append(
                     w.axon_worker_ref.rpcs.set_training_data(x_data, y_data)
                 )
@@ -195,6 +202,12 @@ async def main():
         raise (e)
 
     await asyncio.gather(*allocations_pending)
+
+    # calc total number of samples assignefd
+    # total_batches = sum(map(lambda w: w.num_assigned // BATCH_SIZE, workers))
+    total_batches = x_train.shape[0] // BATCH_SIZE
+    normalizing_factor = total_batches / sum(benchmark_scores)
+    data_allocation = [round(normalizing_factor * b) for b in benchmark_scores]
 
     # evaluate parameters
     loss, acc = val_evaluation(net, x_test, y_test)

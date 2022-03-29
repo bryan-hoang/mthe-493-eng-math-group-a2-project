@@ -32,14 +32,12 @@ def assign_work(
         timing = [round(time.time_ns() / 1000)]
 
     # derive some properties from arguments
-    n = len(data_set)
+    n = len(data_set) // 32
     k = len(workers)
 
     # CHECK 0: n > 0
     if n <= 0:
-        raise ValueError(
-            "Must have at least one data element (n: {})".format(n)
-        )
+        raise ValueError("Must have at least one data element (n: {})".format(n))
     elif k <= 0:
         raise ValueError("Must have at least one worker (k: {})".format(k))
     # CHECK 1: n >= beta * s_min. If s_min is 0, we pretend it's 1
@@ -175,9 +173,7 @@ if __name__ == "__main__":
         )
     elif len(c) != k:
         raise ValueError(
-            "Invalid c list: expected length: {}; actual length: {}".format(
-                k, len(c)
-            )
+            "Invalid c list: expected length: {}; actual length: {}".format(k, len(c))
         )
 
     # instantiate workers
