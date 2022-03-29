@@ -17,6 +17,16 @@ def get_env_s_min():
     return int(os.environ.get("S_MIN", 1))
 
 
+def get_env_max_time():
+    """Returns MAX_TIME, the duration we want workers to compute for (seconds)"""
+    return int(os.environ.get("MAX_TIME", 800))
+
+
+def get_env_num_benchmark():
+    """Returns NUM_BENCHMARK, number of fake batches for workers to compute in benchmark."""
+    return int(os.environ.get("NUM_BENCHMARK", 500))
+
+
 def get_env_num_global_cycles():
     """Returns NUM_GLOBAL_CYCLES, the number of times each worker should perform their local update"""
     return int(os.environ.get("NUM_GLOBAL_CYCLES", 10))

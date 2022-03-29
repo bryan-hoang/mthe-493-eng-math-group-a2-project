@@ -23,13 +23,13 @@ from environment import (
     get_env_batch_size,
     get_env_beta,
     get_env_device,
+    get_env_max_time,
+    get_env_num_benchmark,
     get_env_num_global_cycles,
     get_env_s_min,
 )
 
 nb_ip = None
-MAX_TIME = 800
-NUM_BENCHMARK = 500
 
 device = get_env_device()
 
@@ -106,9 +106,11 @@ async def main():
     # ML-related params
     BATCH_SIZE = get_env_batch_size()
     NUM_GLOBAL_CYCLES = get_env_num_global_cycles()
+    NUM_BENCHMARK = get_env_num_benchmark()
     # Data-assignment-related params
     BETA = get_env_beta()
     S_MIN = get_env_s_min()
+    MAX_TIME = get_env_max_time()
 
     # grabs notice board ip for discovery use
     axon_local_ips = await discovery.broadcast_discovery(
