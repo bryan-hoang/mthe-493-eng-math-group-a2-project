@@ -47,3 +47,8 @@ def get_env_device():
         return "cuda:0" if torch.cuda.is_available() else "cpu"
     else:
         return "cpu"
+
+
+def get_env_logs():
+    """Returns LOGS, path where logs should be dumped"""
+    return os.environ.get("LOGS", "logs")
