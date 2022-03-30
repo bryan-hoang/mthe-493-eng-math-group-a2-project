@@ -25,8 +25,10 @@ from data_assignment.model import Worker
 from environment import (
     get_env_batch_size,
     get_env_beta,
+    get_env_default_fee,
     get_env_device,
-    get_env_logs,
+    get_env_fee_type,
+    get_env_fees,
     get_env_max_time,
     get_env_num_benchmark,
     get_env_num_global_cycles,
@@ -105,6 +107,23 @@ def val_evaluation(net, x_test, y_test):
     return loss, acc
 
 
+def get_fees(n):
+    FEE_TYPE = get_env_fee_type()
+    DEFAULT_FEE = get_env_default_fee()
+
+    print("Using {} fee type".format(FEE_TYPE))
+
+    if FEE_TYPE == "random":
+        return [random.randint(1, 20) for _ in range(n)]
+    elif FEE_TYPE == "linear":
+        return [i + 1 for i in range(n)]
+    elif FEE_TYPE == "specific":
+        return get_env_fees(n)
+    else:
+        # default to constant
+        return [DEFAULT_FEE] * n
+
+
 async def main(arg_nb_ip=None):
     global nb_ip
 
@@ -130,14 +149,20 @@ async def main(arg_nb_ip=None):
     S_MIN = get_env_s_min()
     MAX_TIME = get_env_max_time()
     max_time_per_cycle = MAX_TIME / NUM_GLOBAL_CYCLES
+    # Fees
+    FEE_TYPE = get_env_fee_type()
 
-    print("CLIENT PARAMETERS")
+    print("*** System Parameters ***")
     print(
         "BATCH_SIZE={} NUM_GLOBAL_CYCLES={} NUM_BENCHMARK={}".format(
             BATCH_SIZE, NUM_GLOBAL_CYCLES, NUM_BENCHMARK
         )
     )
-    print("BETA={} S_MIN={} MAX_TIME={}".format(BETA, S_MIN, MAX_TIME))
+    print(
+        "BETA={} S_MIN={} MAX_TIME={} FEE_TYPE={}".format(
+            BETA, S_MIN, MAX_TIME, FEE_TYPE
+        )
+    )
 
     log_dict["BATCH_SIZE"] = BATCH_SIZE
     log_dict["NUM_GLOBAL_CYCLES"] = NUM_GLOBAL_CYCLES
@@ -146,6 +171,7 @@ async def main(arg_nb_ip=None):
     log_dict["S_MIN"] = S_MIN
     log_dict["MAX_TIME"] = MAX_TIME
     log_dict["max_time_per_cycle"] = max_time_per_cycle
+    log_dict["FEE_TYPE"] = FEE_TYPE
 
     # find and connect to workers
     worker_ips = discovery.get_ips(ip=nb_ip)
@@ -153,7 +179,7 @@ async def main(arg_nb_ip=None):
     # instantiates remote worker objects, with which we can call rpcs on each worker
     axon_workers = [client.RemoteWorker(ip) for ip in worker_ips]
 
-    print("benchmarking workers")
+    print("\n*** Benchmarking Workers ***")
     # start benchmarks in each worker
     benchmark_coros = []
     for w in axon_workers:
@@ -171,28 +197,29 @@ async def main(arg_nb_ip=None):
     total_batches = x_train.shape[0] // BATCH_SIZE
     log_dict["total_batches"] = total_batches
 
+    fees = get_fees(len(axon_workers))
+
     workers: List[Worker] = []
     for i, w in enumerate(axon_workers):
         ip = worker_ips[i]
         s_max = s_max_batches[i]
-        # get random wage between 1 and 20 (inclusive)
-        # TODO: Set this to something deterministic/repeatable
-        wage = 1
+        wage = fees[i]
         new_worker = Worker(s_max, wage, ip, w)
         workers.append(new_worker)
 
     log_dict["workers"] = workers
 
-    print("setting worker wages")
+    print("\n*** Setting Worker Fees ***")
 
     # set wages in each worker
     minwage_coros = []
     for w in workers:
+        print("Worker {} fee: {}".format(w.id, w.c))
         minwage_coros.append(w.axon_worker_ref.rpcs.set_minimum_wage(w.c))
 
     await asyncio.gather(*minwage_coros)
 
-    print("sending data to workers")
+    print("\n*** Sending Data to Workers ***")
     send_data_start = time.time()
 
     # The Worker model assumes we partition the set of batches
@@ -256,11 +283,13 @@ async def main(arg_nb_ip=None):
     # determine which workers were actually assigned data
     assigned_workers = list(filter(lambda w: w.num_assigned > 0, workers))
 
+    print("\n*** Training ***")
+
     model_stats = {}
     log_dict["model_stats"] = model_stats
     # evaluate parameters
     loss, acc = val_evaluation(net, x_test, y_test)
-    print("network loss and validation prior to training:", loss, acc)
+    print("Network loss, accuracy prior to training: {}, {}".format(loss, acc))
     model_stats["0"] = {"loss": loss, "acc": acc}
     log_dict["model_pre_train_loss"] = loss
     log_dict["model_pre_train_acc"] = acc
@@ -268,8 +297,6 @@ async def main(arg_nb_ip=None):
     training_start = time.time()
 
     for i in range(NUM_GLOBAL_CYCLES):
-        print("training index:", i, "out of", NUM_GLOBAL_CYCLES)
-
         # some workers don't have a GPU and the device that a tensor is on will be serialized, so we've gotta move the network to CPU before transmitting parameters to worker
         net.to("cpu")
 
@@ -294,7 +321,11 @@ async def main(arg_nb_ip=None):
 
         # evaluate new parameters
         loss, acc = val_evaluation(net, x_test, y_test)
-        print("network loss and validation:", loss, acc)
+        print(
+            "({}/{}) Network loss, accuracy: {}, {}".format(
+                i + 1, NUM_GLOBAL_CYCLES, loss, acc
+            )
+        )
         model_stats[str(i + 1)] = {"loss": loss, "acc": acc}
 
     log_dict["model_post_train_loss"] = loss
@@ -311,6 +342,8 @@ async def main(arg_nb_ip=None):
     timing_logs = await asyncio.gather(*timing_logs_coros)
     timing_logs = {x[0].id: x[1] for x in zip(assigned_workers, timing_logs)}
     log_dict["timing_logs"] = timing_logs
+
+    print("\n*** Results ***")
 
     # Worker model computes total cost as w.cost = ceil(w.num_assigned / w.batch_size) * w.c
     total_cost_per_cycle = sum(map(lambda w: w.cost, workers))
@@ -334,7 +367,13 @@ async def main(arg_nb_ip=None):
     print("Training duration:", training_duration)
 
     # Dump log_dict to CSVs
-    dump_logs(log_dict)
+    print("\n*** Writing Logs ***")
+    try:
+        dump_logs(log_dict)
+        print("Success!")
+    except Exception as e:
+        print("Failed!")
+        print(e)
 
 
 # Instantiate the parser
