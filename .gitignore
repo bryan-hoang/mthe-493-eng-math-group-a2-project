@@ -169,3 +169,6 @@ data/MNIST
 
 # Log dumps from workers
 logs/*
+
+# MacOS stuff
+.DS_Store
