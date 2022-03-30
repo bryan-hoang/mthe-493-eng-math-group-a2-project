@@ -3,11 +3,14 @@ import random
 import time
 from math import floor
 from typing import List
+import argparse
 
 import torch
 from axon import client, config, discovery
 from torchvision import transforms
 from torchvision.datasets import MNIST
+
+import numpy as np
 
 from common import TwoNN, get_accuracy, set_parameters
 from data_assignment.assign import assign_work
@@ -23,11 +26,13 @@ from environment import (
     get_env_batch_size,
     get_env_beta,
     get_env_device,
+    get_env_logs,
     get_env_max_time,
     get_env_num_benchmark,
     get_env_num_global_cycles,
     get_env_s_min,
 )
+from log import dump_logs
 
 nb_ip = None
 
@@ -100,8 +105,21 @@ def val_evaluation(net, x_test, y_test):
     return loss, acc
 
 
-async def main():
+async def main(arg_nb_ip=None):
     global nb_ip
+
+    # Set nb_ip from args (if provided) or broadcast IP otherwise
+    if arg_nb_ip:
+        nb_ip = arg_nb_ip
+    else:
+        # grabs notice board ip for discovery use
+        axon_local_ips = await discovery.broadcast_discovery(
+            num_hosts=1, port=config.comms_config.notice_board_port
+        )
+
+        nb_ip = axon_local_ips.pop()
+
+    log_dict = {}
 
     # ML-related params
     BATCH_SIZE = get_env_batch_size()
@@ -111,13 +129,23 @@ async def main():
     BETA = get_env_beta()
     S_MIN = get_env_s_min()
     MAX_TIME = get_env_max_time()
+    max_time_per_cycle = MAX_TIME / NUM_GLOBAL_CYCLES
 
-    # grabs notice board ip for discovery use
-    axon_local_ips = await discovery.broadcast_discovery(
-        num_hosts=1, port=config.comms_config.notice_board_port
+    print("CLIENT PARAMETERS")
+    print(
+        "BATCH_SIZE={} NUM_GLOBAL_CYCLES={} NUM_BENCHMARK={}".format(
+            BATCH_SIZE, NUM_GLOBAL_CYCLES, NUM_BENCHMARK
+        )
     )
+    print("BETA={} S_MIN={} MAX_TIME={}".format(BETA, S_MIN, MAX_TIME))
 
-    nb_ip = axon_local_ips.pop()
+    log_dict["BATCH_SIZE"] = BATCH_SIZE
+    log_dict["NUM_GLOBAL_CYCLES"] = NUM_GLOBAL_CYCLES
+    log_dict["NUM_BENCHMARK"] = NUM_BENCHMARK
+    log_dict["BETA"] = BETA
+    log_dict["S_MIN"] = S_MIN
+    log_dict["MAX_TIME"] = MAX_TIME
+    log_dict["max_time_per_cycle"] = max_time_per_cycle
 
     # find and connect to workers
     worker_ips = discovery.get_ips(ip=nb_ip)
@@ -133,16 +161,15 @@ async def main():
 
     # wait for each worker to finish their benchmark
     benchmark_scores = await asyncio.gather(*benchmark_coros)
-    # calculates the number of data batches each worker should be assigned
-    # total_batches = (x_train.shape[0]//num_global_cycles)//BATCH_SIZE
-    # total_batches = 6000//BATCH_SIZE
-    s_max_batches = [floor(MAX_TIME * b) for b in benchmark_scores]
+    log_dict["benchmark_scores"] = {
+        x[0]: x[1] for x in zip(worker_ips, benchmark_scores)
+    }
+    # calculates the number of batches each worker should be assigned
+    s_max_batches = [floor(max_time_per_cycle * b) for b in benchmark_scores]
 
-    # calc total number of samples assigned
-    # total_batches = sum(map(lambda w: w.num_assigned // BATCH_SIZE, workers))
+    # calc total number of batches
     total_batches = x_train.shape[0] // BATCH_SIZE
-    normalizing_factor = total_batches / sum(benchmark_scores)
-    data_allocation = [round(normalizing_factor * b) for b in benchmark_scores]
+    log_dict["total_batches"] = total_batches
 
     workers: List[Worker] = []
     for i, w in enumerate(axon_workers):
@@ -150,9 +177,11 @@ async def main():
         s_max = s_max_batches[i]
         # get random wage between 1 and 20 (inclusive)
         # TODO: Set this to something deterministic/repeatable
-        wage = random.randint(1, 20)
+        wage = 1
         new_worker = Worker(s_max, wage, ip, w)
         workers.append(new_worker)
+
+    log_dict["workers"] = workers
 
     print("setting worker wages")
 
@@ -164,6 +193,7 @@ async def main():
     await asyncio.gather(*minwage_coros)
 
     print("sending data to workers")
+    send_data_start = time.time()
 
     # The Worker model assumes we partition the set of batches
     dataset = [x for x in range(total_batches)]
@@ -179,12 +209,27 @@ async def main():
         )
         for w in workers:
             if w.id in employed_workers:
-                # TODO: for Jack: ...and this is where we extract the actual training dataset from the global dataset + assigned_work
-                idxs = torch.randperm(x_train.shape[0])[0 : BATCH_SIZE * w.num_assigned]
-                # x_data = x_train[idxs]
-                # y_data = y_train[idxs]
-                x_data = x_train[idxs]
-                y_data = y_train[idxs]
+                # Extract the dataset here
+                # idxs = torch.randperm(x_train.shape[0])[0 : BATCH_SIZE * w.num_assigned]
+                # w.assigned_work will be a List of indexes of batches, samples_indices is a 2D list
+                batch_samples = list(
+                    map(
+                        lambda batch_idx: list(
+                            range(batch_idx * BATCH_SIZE, (batch_idx + 1) * BATCH_SIZE)
+                        ),
+                        w.assigned_work,
+                    )
+                )
+                sample_indices = np.array(batch_samples).flatten()
+                num_samples = sample_indices.shape[0]
+                x_data = x_train[sample_indices]
+                y_data = y_train[sample_indices]
+
+                print(
+                    "Assigning worker {} {} batches ({} samples)".format(
+                        w.id, num_samples // BATCH_SIZE, num_samples
+                    )
+                )
 
                 allocations_pending.append(
                     w.axon_worker_ref.rpcs.set_training_data(x_data, y_data)
@@ -202,11 +247,25 @@ async def main():
 
     await asyncio.gather(*allocations_pending)
 
+    send_data_duration = time.time() - send_data_start
+    log_dict["send_data_duration"] = send_data_duration
+
+    # Calculate how many batches were actually assigned
+    total_batches_assigned = sum(map(lambda w: w.num_assigned, workers))
+    log_dict["total_batches_assigned"] = total_batches_assigned
+    # determine which workers were actually assigned data
+    assigned_workers = list(filter(lambda w: w.num_assigned > 0, workers))
+
+    model_stats = {}
+    log_dict["model_stats"] = model_stats
     # evaluate parameters
     loss, acc = val_evaluation(net, x_test, y_test)
     print("network loss and validation prior to training:", loss, acc)
+    model_stats["0"] = {"loss": loss, "acc": acc}
+    log_dict["model_pre_train_loss"] = loss
+    log_dict["model_pre_train_acc"] = acc
 
-    start_time = time.time()
+    training_start = time.time()
 
     for i in range(NUM_GLOBAL_CYCLES):
         print("training index:", i, "out of", NUM_GLOBAL_CYCLES)
@@ -216,7 +275,7 @@ async def main():
 
         # local updates
         local_update_coros = []
-        for w in workers:
+        for w in assigned_workers:
             local_update_coros.append(
                 w.axon_worker_ref.rpcs.local_update(list(net.parameters()))
             )
@@ -227,7 +286,7 @@ async def main():
         net.to(device)
 
         # aggregates parameters
-        weights = [d / sum(data_allocation) for d in data_allocation]
+        weights = [w.num_assigned / total_batches_assigned for w in workers]
         new_params = aggregate_parameters(worker_params, weights)
 
         # sets the central model to the new parameters
@@ -236,37 +295,52 @@ async def main():
         # evaluate new parameters
         loss, acc = val_evaluation(net, x_test, y_test)
         print("network loss and validation:", loss, acc)
+        model_stats[str(i + 1)] = {"loss": loss, "acc": acc}
 
-    elapsed_time = time.time() - start_time
+    log_dict["model_post_train_loss"] = loss
+    log_dict["model_post_train_acc"] = acc
+
+    training_duration = time.time() - training_start
+    log_dict["training_duration"] = training_duration
 
     timing_logs_coros = []
-    for w in workers:
+    for w in assigned_workers:
         timing_logs_coros.append(w.axon_worker_ref.rpcs.return_and_clear_timing_logs())
 
     # wait for timing logs to be returned from each worker
     timing_logs = await asyncio.gather(*timing_logs_coros)
+    timing_logs = {x[0].id: x[1] for x in zip(assigned_workers, timing_logs)}
+    log_dict["timing_logs"] = timing_logs
 
     # Worker model computes total cost as w.cost = ceil(w.num_assigned / w.batch_size) * w.c
-    total_cost = sum(map(lambda w: w.cost, workers))
+    total_cost_per_cycle = sum(map(lambda w: w.cost, workers))
+    log_dict["total_cost_per_cycle"] = total_cost_per_cycle
+    total_cost = total_cost_per_cycle * NUM_GLOBAL_CYCLES
+    log_dict["total_cost"] = total_cost
 
-    # TODO: This should maybe be change to reference worker.id instead of the index (async evaluation might resolve in any order?)
-    for index, log in enumerate(timing_logs):
-        print(
-            "worker "
-            + str(index)
-            + " computed "
-            + str(len(log))
-            + " batches in "
-            + str(sum(log))
-            + "s"
-        )
-    print("total elapsed time for job completion " + str(elapsed_time))
     for w in workers:
-        template = "Worker {} assigned {} batches (= {} samples); total worker fee: {}"
-        msg = template.format(w.id, w.num_assigned, w.num_assigned * BATCH_SIZE, w.cost)
+        template = "Worker {} assigned {} batches (= {} samples); fee per cycle: {}; total fee: {}"
+        msg = template.format(
+            w.id,
+            w.num_assigned,
+            w.num_assigned * BATCH_SIZE,
+            w.cost,
+            w.cost * NUM_GLOBAL_CYCLES,
+        )
         print(msg)
-    print("Total fee: " + str(total_cost))
+    print("Total fee per cycle:", total_cost_per_cycle)
+    print("Total fee ({} cycles): {}".format(NUM_GLOBAL_CYCLES, total_cost))
+    print("Data assignment duration:", send_data_duration)
+    print("Training duration:", training_duration)
 
+    # Dump log_dict to CSVs
+    dump_logs(log_dict)
+
+
+# Instantiate the parser
+parser = argparse.ArgumentParser(description="Optional app description")
+parser.add_argument("--nb-ip", type=str, help="Notice board host IP")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    args = parser.parse_args()
+    asyncio.run(main(arg_nb_ip=args.nb_ip))
