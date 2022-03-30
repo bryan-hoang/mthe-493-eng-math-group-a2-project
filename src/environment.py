@@ -14,17 +14,57 @@ def get_env_beta():
 
 def get_env_s_min():
     """Returns S_MIN, the minimum quantity of work that must be assigned to a worker, if it is receiving non-zero slices."""
-    return int(os.environ.get("S_MIN", 1))
+    return int(os.environ.get("S_MIN", 10))
 
 
 def get_env_max_time():
     """Returns MAX_TIME, the duration we want workers to compute for (seconds)"""
-    return int(os.environ.get("MAX_TIME", 800))
+    return float(os.environ.get("MAX_TIME", 30))
+
+
+def get_env_fee_type():
+    """
+    Returns FEE_TYPE
+
+    'random': all workers have random fees between 1 and 20
+    'constant': all workers have fees of 1
+    'linear': fees are 1, 2, 3, 4, ...
+    'specific': fees are specified by FEES, a comma-seperated list of floats
+    """
+    return os.environ.get("FEE_TYPE", "constant")
+
+
+def get_env_fees(n=None):
+    """
+    Returns FEES, padded to length n
+
+    FEES should be comma-seperated list of floats
+    """
+    fees_str = os.environ.get("FEES", "")
+    fees = []
+    for fee_str in fees_str.split(","):
+        try:
+            fee = float(fee_str)
+            fees.append(fee)
+        except ValueError:
+            fees.append(get_env_default_fee())
+
+    # pad to n
+    fees += [get_env_default_fee()] * (n - len(fees))
+
+    return fees
+
+
+def get_env_default_fee():
+    try:
+        return float(os.environ.get("DEFAULT_FEE", 1))
+    except ValueError:
+        return 1.0
 
 
 def get_env_num_benchmark():
     """Returns NUM_BENCHMARK, number of fake batches for workers to compute in benchmark."""
-    return int(os.environ.get("NUM_BENCHMARK", 500))
+    return int(os.environ.get("NUM_BENCHMARK", 1000))
 
 
 def get_env_num_global_cycles():
