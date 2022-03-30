@@ -2,6 +2,8 @@ import asyncio
 import signal
 import time
 
+import argparse
+
 import torch
 from axon import config, discovery, worker
 from tqdm import tqdm
@@ -158,13 +160,19 @@ def shutdown_handler(a, b):
     exit()
 
 
-async def main():
+async def main(arg_nb_ip=None):
     global nb_ip
-    axon_local_ips = await discovery.broadcast_discovery(
-        num_hosts=1, port=config.comms_config.notice_board_port
-    )
 
-    nb_ip = axon_local_ips.pop()
+    # Set nb_ip from args (if provided) or broadcast IP otherwise
+    if arg_nb_ip:
+        nb_ip = arg_nb_ip
+    else:
+        axon_local_ips = await discovery.broadcast_discovery(
+            num_hosts=1, port=config.comms_config.notice_board_port
+        )
+        nb_ip = axon_local_ips.pop()
+
+    print("Attempting to sign in to Notice Board @ {}".format(nb_ip))
     # signs into notice board
     discovery.sign_in(ip=nb_ip)
 
@@ -175,5 +183,11 @@ async def main():
     worker.init()
 
 
+# Instantiate the parser
+parser = argparse.ArgumentParser(description="Optional app description")
+parser.add_argument("--nb-ip", type=str, help="Notice board host IP")
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    args = parser.parse_args()
+
+    asyncio.run(main(arg_nb_ip=args.nb_ip))
