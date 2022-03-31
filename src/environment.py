@@ -1,4 +1,5 @@
 import os
+import time
 
 from dotenv import load_dotenv
 import torch
@@ -92,3 +93,7 @@ def get_env_device():
 def get_env_logs():
     """Returns LOGS, path where logs should be dumped"""
     return os.environ.get("LOGS", "logs")
+
+
+def get_env_log_id():
+    return os.environ.get("LOG_ID", str(time.time_ns() // 1000))
