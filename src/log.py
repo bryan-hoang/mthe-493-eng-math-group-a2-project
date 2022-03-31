@@ -1,7 +1,11 @@
 import os
 import pathlib
-import time
-from environment import get_env_batch_size, get_env_logs, get_env_num_global_cycles
+from environment import (
+    get_env_batch_size,
+    get_env_log_id,
+    get_env_logs,
+    get_env_num_global_cycles,
+)
 
 SPECIAL_LOGS = [
     "workers",
@@ -11,9 +15,9 @@ SPECIAL_LOGS = [
 ]
 
 
-def make_workers_csv(workers, benchmark_scores):
-    BATCH_SIZE = get_env_batch_size()
-    NUM_GLOBAL_CYCLES = get_env_num_global_cycles()
+def make_workers_csv(workers, benchmark_scores, params):
+    BATCH_SIZE = params.get("BATCH_SIZE", get_env_batch_size())
+    NUM_GLOBAL_CYCLES = params.get("NUM_GLOBAL_CYCLES", get_env_num_global_cycles())
 
     headers = "ip,benchmark_batches_per_sec,s_max,cost_per_batch,cost_per_cycle,total_cost,batches_assigned,samples_assigned"
     values = []
@@ -44,8 +48,8 @@ def make_model_stats_csv(model_stats):
     return "\n".join([headers] + values)
 
 
-def make_timing_logs_csv(timing_logs):
-    NUM_GLOBAL_CYCLES = get_env_num_global_cycles()
+def make_timing_logs_csv(timing_logs, params):
+    NUM_GLOBAL_CYCLES = params.get("NUM_GLOBAL_CYCLES", get_env_num_global_cycles())
 
     headers = ""
     values = ["" for _ in range(NUM_GLOBAL_CYCLES)]
@@ -60,16 +64,26 @@ def make_timing_logs_csv(timing_logs):
     return "\n".join([headers] + values)
 
 
-def dump_logs(log_dict):
-    log_base = get_env_logs()
-    ms_epoch = time.time_ns() // 1000
-    log_dir = os.path.join(log_base, str(ms_epoch))
-    stats_path = os.path.join(log_dir, "stats.csv")
-    workers_path = os.path.join(log_dir, "workers.csv")
-    model_path = os.path.join(log_dir, "model_stats.csv")
-    timing_path = os.path.join(log_dir, "timing_logs.csv")
+def dump_logs(log_dict, params):
+    log_base = params.get("LOGS", get_env_logs())
+    log_id = params.get("LOG_ID", get_env_log_id())
+    pathlib.Path(log_base).mkdir(exist_ok=True, parents=True)
 
-    pathlib.Path(log_dir).mkdir(exist_ok=True, parents=True)
+    stats_dir = os.path.join(log_base, "stats")
+    workers_dir = os.path.join(log_base, "workers")
+    model_dir = os.path.join(log_base, "model")
+    timing_dir = os.path.join(log_base, "timing")
+    pathlib.Path(stats_dir).mkdir(exist_ok=True, parents=True)
+    pathlib.Path(workers_dir).mkdir(exist_ok=True, parents=True)
+    pathlib.Path(model_dir).mkdir(exist_ok=True, parents=True)
+    pathlib.Path(timing_dir).mkdir(exist_ok=True, parents=True)
+
+    csv_filename = "{}.csv".format(log_id)
+
+    stats_path = os.path.join(stats_dir, csv_filename)
+    workers_path = os.path.join(workers_dir, csv_filename)
+    model_path = os.path.join(model_dir, csv_filename)
+    timing_path = os.path.join(timing_dir, csv_filename)
 
     workers = log_dict["workers"]
     benchmark_scores = log_dict["benchmark_scores"]
@@ -87,12 +101,12 @@ def dump_logs(log_dict):
     with open(stats_path, "w") as f:
         f.write(header + "\n" + values)
     with open(workers_path, "w") as f:
-        output = make_workers_csv(workers, benchmark_scores)
+        output = make_workers_csv(workers, benchmark_scores, params)
         f.write(output)
     with open(model_path, "w") as f:
         output = make_model_stats_csv(model_stats)
         f.write(output)
     with open(timing_path, "w") as f:
-        output = make_timing_logs_csv(timing_logs)
+        output = make_timing_logs_csv(timing_logs, params)
         f.write(output)
 

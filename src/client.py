@@ -79,8 +79,8 @@ def aggregate_parameters(param_list, weights):
 
 
 # gets the accuracy and loss of a neural net on testing data
-def val_evaluation(net, x_test, y_test):
-    BATCH_SIZE = get_env_batch_size()
+def val_evaluation(net, x_test, y_test, params):
+    BATCH_SIZE = params.get("BATCH_SIZE", get_env_batch_size())
 
     num_test_batches = x_test.shape[0] // BATCH_SIZE
 
@@ -107,9 +107,9 @@ def val_evaluation(net, x_test, y_test):
     return loss, acc
 
 
-def get_fees(n):
-    FEE_TYPE = get_env_fee_type()
-    DEFAULT_FEE = get_env_default_fee()
+def get_fees(n, params):
+    FEE_TYPE = params.get("FEE_TYPE", get_env_fee_type())
+    DEFAULT_FEE = params.get("DEFAULT_FEE", get_env_default_fee())
 
     print("Using {} fee type".format(FEE_TYPE))
 
@@ -118,14 +118,17 @@ def get_fees(n):
     elif FEE_TYPE == "linear":
         return [i + 1 for i in range(n)]
     elif FEE_TYPE == "specific":
-        return get_env_fees(n)
+        return params.get("FEES", get_env_fees(n))
     else:
         # default to constant
         return [DEFAULT_FEE] * n
 
 
-async def main(arg_nb_ip=None):
+async def main(arg_nb_ip=None, params=None):
     global nb_ip
+
+    if params is None:
+        params = {}
 
     # Set nb_ip from args (if provided) or broadcast IP otherwise
     if arg_nb_ip:
@@ -141,16 +144,16 @@ async def main(arg_nb_ip=None):
     log_dict = {}
 
     # ML-related params
-    BATCH_SIZE = get_env_batch_size()
-    NUM_GLOBAL_CYCLES = get_env_num_global_cycles()
-    NUM_BENCHMARK = get_env_num_benchmark()
+    BATCH_SIZE = params.get("BATCH_SIZE", get_env_batch_size())
+    NUM_GLOBAL_CYCLES = params.get("NUM_GLOBAL_CYCLES", get_env_num_global_cycles())
+    NUM_BENCHMARK = params.get("NUM_BENCHMARK", get_env_num_benchmark())
     # Data-assignment-related params
-    BETA = get_env_beta()
-    S_MIN = get_env_s_min()
-    MAX_TIME = get_env_max_time()
+    BETA = params.get("BETA", get_env_beta())
+    S_MIN = params.get("S_MIN", get_env_s_min())
+    MAX_TIME = params.get("MAX_TIME", get_env_max_time())
     max_time_per_cycle = MAX_TIME / NUM_GLOBAL_CYCLES
     # Fees
-    FEE_TYPE = get_env_fee_type()
+    FEE_TYPE = params.get("FEE_TYPE", get_env_fee_type())
 
     print("*** System Parameters ***")
     print(
@@ -197,7 +200,7 @@ async def main(arg_nb_ip=None):
     total_batches = x_train.shape[0] // BATCH_SIZE
     log_dict["total_batches"] = total_batches
 
-    fees = get_fees(len(axon_workers))
+    fees = get_fees(len(axon_workers), params)
 
     workers: List[Worker] = []
     for i, w in enumerate(axon_workers):
@@ -288,7 +291,7 @@ async def main(arg_nb_ip=None):
     model_stats = {}
     log_dict["model_stats"] = model_stats
     # evaluate parameters
-    loss, acc = val_evaluation(net, x_test, y_test)
+    loss, acc = val_evaluation(net, x_test, y_test, params)
     print("Network loss, accuracy prior to training: {}, {}".format(loss, acc))
     model_stats["0"] = {"loss": loss, "acc": acc}
     log_dict["model_pre_train_loss"] = loss
@@ -320,7 +323,7 @@ async def main(arg_nb_ip=None):
         set_parameters(net, new_params)
 
         # evaluate new parameters
-        loss, acc = val_evaluation(net, x_test, y_test)
+        loss, acc = val_evaluation(net, x_test, y_test, params)
         print(
             "({}/{}) Network loss, accuracy: {}, {}".format(
                 i + 1, NUM_GLOBAL_CYCLES, loss, acc
@@ -369,11 +372,13 @@ async def main(arg_nb_ip=None):
     # Dump log_dict to CSVs
     print("\n*** Writing Logs ***")
     try:
-        dump_logs(log_dict)
+        dump_logs(log_dict, params)
         print("Success!")
     except Exception as e:
         print("Failed!")
         print(e)
+
+    return log_dict
 
 
 # Instantiate the parser
