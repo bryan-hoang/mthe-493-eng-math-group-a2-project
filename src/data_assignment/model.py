@@ -8,10 +8,12 @@ LOG_ASSIGNED_WORK = False
 LOG_INPUT_LISTS = True
 
 
-class Worker:
+class Worker(dict):
     """
     Worker is just a temporary data structure, used to encapsulate the properties
-    of a single worker. May or may not be included in final implementation
+    of a single worker. May or may not be included in final implementation.
+
+    Subclasses dict so we can JSON serialize relevant properties
     """
 
     id = 0
@@ -24,6 +26,7 @@ class Worker:
     cost = 0
 
     def __init__(self, s_max: int, c: float, id=0, axon_worker_ref=None) -> None:
+        dict.__init__(self, s_max=s_max, c=c, id=id)
         self.s_max = s_max
         self.c = c
         self.id = id
@@ -39,6 +42,10 @@ class Worker:
         self.assigned_work = items
         self.num_assigned = len(items)
         self.cost = self.c * len(items)
+        # Omit assigned work because it's big
+        # self.__setitem__("assigned_work", self.assigned_work)
+        self.__setitem__("num_assigned", self.num_assigned)
+        self.__setitem__("cost", self.cost)
 
     def reassign_from(self, source: "Worker", n: int, s_min: int) -> None:
         """Reassigns n assigned elements from source to self"""
