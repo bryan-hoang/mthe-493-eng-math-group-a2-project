@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 
 from environment import get_env_device
 
@@ -39,3 +40,9 @@ def set_parameters(net, params):
     current_params = list(net.parameters())
     for i, p in enumerate(params):
         current_params[i].data = p.data.clone()
+
+
+def init_weights(m):
+    if type(m) == nn.Linear or type(m) == nn.Conv2d:
+        nn.init.xavier_uniform_(m.weight)
+        m.bias.data.fill_(0.01)

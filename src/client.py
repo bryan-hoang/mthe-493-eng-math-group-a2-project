@@ -12,7 +12,7 @@ from torchvision.datasets import MNIST
 
 import numpy as np
 
-from common import TwoNN, get_accuracy, set_parameters
+from common import TwoNN, get_accuracy, set_parameters, init_weights
 from data_assignment.assign import assign_work
 from data_assignment.error import (
     AssignmentError,
@@ -175,6 +175,9 @@ async def main(arg_nb_ip=None, params=None):
     log_dict["MAX_TIME"] = MAX_TIME
     log_dict["max_time_per_cycle"] = max_time_per_cycle
     log_dict["FEE_TYPE"] = FEE_TYPE
+
+    print("\n*** Reinitialize net ***")
+    net.apply(init_weights)
 
     # find and connect to workers
     worker_ips = discovery.get_ips(ip=nb_ip)
