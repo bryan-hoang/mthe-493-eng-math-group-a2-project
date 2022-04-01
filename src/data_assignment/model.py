@@ -18,12 +18,12 @@ class Worker(dict):
 
     id = 0
     s_max = 0
-    c = 0
+    c = 0.0
     axon_worker_ref = None
 
     num_assigned = 0
     assigned_work = []
-    cost = 0
+    cost = 0.0
 
     def __init__(self, s_max: int, c: float, id=0, axon_worker_ref=None) -> None:
         dict.__init__(self, s_max=s_max, c=c, id=id)

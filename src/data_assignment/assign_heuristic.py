@@ -15,7 +15,7 @@ from .utils import get_capacity, get_employable_workers
 ENABLE_NATIVE_TIMING = False
 
 
-def assign_work(
+def assign_work_heuristic(
     workers: List[Worker], data_set: List, beta: int, s_min: int
 ) -> Tuple[List[int], Timing]:
     """
@@ -192,7 +192,7 @@ if __name__ == "__main__":
 
     input_set = InputSet(n, beta, s_min, k, s_max, c)
 
-    [assigned_ids, timing] = assign_work(workers, data_set, beta, s_min)
+    [assigned_ids, timing] = assign_work_heuristic(workers, data_set, beta, s_min)
     assigned = [w for w in workers if w.id in assigned_ids]
 
     stats = Stats(input_set, workers)

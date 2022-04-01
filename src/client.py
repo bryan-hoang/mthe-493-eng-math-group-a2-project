@@ -13,7 +13,7 @@ from torchvision.datasets import MNIST
 import numpy as np
 
 from common import TwoNN, get_accuracy, set_parameters, init_weights
-from data_assignment.assign import assign_work
+from data_assignment.assign_heuristic import assign_work_heuristic
 from data_assignment.error import (
     AssignmentError,
     InfeasibleWorkerCapacityError,
@@ -232,7 +232,7 @@ async def main(arg_nb_ip=None, params=None):
     dataset = [x for x in range(total_batches)]
     allocations_pending = []
     try:
-        [employed_workers, assignment_timing_stats] = assign_work(
+        [employed_workers, assignment_timing_stats] = assign_work_heuristic(
             workers, dataset, BETA, S_MIN
         )
         print(
