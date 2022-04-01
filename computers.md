@@ -37,7 +37,8 @@ Worker command: `cd ~/MTHE493/mthe-493-group-a2; conda activate mthe493; python 
 ## Jared Laptop
 
 Device: `Jareds-MacBook-Pro`
-IP: `192.168.2.109`
+IP (wifi): `192.168.2.109`
+IP (ethernet): `192.168.2.235`
 user: `jared`
 Project path: `~/School/MTHE493/mthe-493-group-a2`
 Env: Conda, `mthe493`
@@ -46,7 +47,8 @@ Worker command: `cd ~/School/MTHE493/mthe-493-group-a2; conda activate mthe493; 
 ## Jack Ubuntu
 
 Device: `jack-XPS-13-9360`
-IP: `192.168.2.217`
+IP (wifi): `192.168.2.217`
+IP (ethernet): `192.168.2.136`
 user: `jack`
 Project path: `~/mthe-493-group-a2`
 Env: Conda, `mthe493`
