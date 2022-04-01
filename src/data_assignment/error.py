@@ -30,7 +30,9 @@ class InfeasibleWorkerCapacityError(Exception):
 
     def __init__(self, k: int, n: int, s_min: int) -> None:
         max_employable = n // s_min if s_min > 0 else k
-        template = "No subset of {} workers can compute data (data set size: {}, s_min: {})"
+        template = (
+            "No subset of {} workers can compute data (data set size: {}, s_min: {})"
+        )
         msg = template.format(max_employable, n, s_min)
         super().__init__(msg)
 
@@ -40,3 +42,12 @@ class AssignmentError(Exception):
 
     def __init__(self, msg) -> None:
         super().__init__(msg)
+
+
+class GurobiInfeasibleError(Exception):
+    __name__ = "GurobiInfeasibleError"
+
+    def __init__(self) -> None:
+        msg = "Gurobi model is infeasible"
+        super().__init__(msg)
+
