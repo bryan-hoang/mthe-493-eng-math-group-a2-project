@@ -12,7 +12,8 @@ from torchvision.datasets import MNIST
 
 import numpy as np
 
-from common import TwoNN, get_accuracy, set_parameters, init_weights
+import common
+from common import TwoNN, get_accuracy, set_parameters
 from data_assignment.assign_heuristic import assign_work_heuristic
 from data_assignment.error import (
     AssignmentError,
@@ -33,6 +34,7 @@ from environment import (
     get_env_num_benchmark,
     get_env_num_global_cycles,
     get_env_s_min,
+    get_env_weight_type,
 )
 from log import dump_logs
 
@@ -124,6 +126,20 @@ def get_fees(n, params):
         return [DEFAULT_FEE] * n
 
 
+def get_weight_type(params):
+    WEIGHT_TYPE = params.get("WEIGHT_TYPE", get_env_weight_type())
+
+    print("Using {} weight type".format(WEIGHT_TYPE))
+
+    if WEIGHT_TYPE == "xavier":
+        return common.init_weights_xavier
+    elif WEIGHT_TYPE == "kaiming":
+        return common.init_weights_kaiming
+    else:
+        # default to orthogonal
+        return common.init_weights_orthogonal
+
+
 async def main(arg_nb_ip=None, params=None):
     global nb_ip
 
@@ -154,6 +170,7 @@ async def main(arg_nb_ip=None, params=None):
     max_time_per_cycle = MAX_TIME / NUM_GLOBAL_CYCLES
     # Fees
     FEE_TYPE = params.get("FEE_TYPE", get_env_fee_type())
+    WEIGHT_TYPE = params.get("WEIGHT_TYPE", get_env_weight_type())
 
     print("*** System Parameters ***")
     print(
@@ -175,9 +192,11 @@ async def main(arg_nb_ip=None, params=None):
     log_dict["MAX_TIME"] = MAX_TIME
     log_dict["max_time_per_cycle"] = max_time_per_cycle
     log_dict["FEE_TYPE"] = FEE_TYPE
+    log_dict["WEIGHT_TYPE"] = WEIGHT_TYPE
 
     print("\n*** Reinitialize net ***")
-    net.apply(init_weights)
+    reinit_weights_fcn = get_weight_type(params)
+    net.apply(reinit_weights_fcn)
 
     # find and connect to workers
     worker_ips = discovery.get_ips(ip=nb_ip)

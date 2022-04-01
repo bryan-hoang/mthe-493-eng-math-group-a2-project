@@ -78,6 +78,11 @@ def get_env_batch_size():
     return int(os.environ.get("BATCH_SIZE", 32))
 
 
+def get_env_weight_type():
+    """Returns WEIGHT_TYPE, the type of weights we should re-init net to"""
+    return os.environ.get("WEIGHT_TYPE", "xavier")
+
+
 def get_env_allow_gpu_device():
     """Returns ALLOW_GPU_DEVICE, indicating whether CUDA-enabled GPUs can be used for training"""
     return bool(os.environ.get("ALLOW_GPU_DEVICE", True))
