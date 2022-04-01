@@ -42,7 +42,17 @@ def set_parameters(net, params):
         current_params[i].data = p.data.clone()
 
 
-def init_weights(m):
+def init_weights_xavier(m):
     if type(m) == nn.Linear or type(m) == nn.Conv2d:
         nn.init.xavier_uniform_(m.weight)
+        m.bias.data.fill_(0.01)
+
+def init_weights_kaiming(m):
+    if type(m) == nn.Linear or type(m) == nn.Conv2d:
+        nn.init.kaiming_uniform_(m.weight)
+        m.bias.data.fill_(0.01)
+
+def init_weights_orthogonal(m):
+    if type(m) == nn.Linear or type(m) == nn.Conv2d:
+        nn.init.orthogonal_(m.weight)
         m.bias.data.fill_(0.01)
