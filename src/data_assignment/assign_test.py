@@ -7,7 +7,9 @@ import time
 from typing import Dict, List, NamedTuple, Tuple, Union
 
 import gurobipy as gp
+import pulp
 
+from .assign_pulp import assign_work_pulp
 from .assign_heuristic import assign_work_heuristic
 from .assign_gurobi import assign_work_gurobi
 from .error import (
@@ -17,6 +19,7 @@ from .error import (
     InsufficientDataError,
     InsufficientWorkersError,
     GurobiInfeasibleError,
+    PuLPInfeasibleError,
 )
 from .model import InputSet, Timing, Worker
 from .stats import Stats
@@ -273,7 +276,7 @@ def run_tests_gurobi(
     tests: List[InstantiatedInputSet], verbose=0, log=True, log_all=False
 ) -> Tuple[List[TestCase], int]:
     """
-    Runs the list of tests specified under heuristic allocation algorithm (assign_work)
+    Runs the list of tests specified under gurobi allocation algorithm (assign_work_gurobi)
 
     @param tests: tests to run
     @param verbose: determines amount of logging to console (values: 0, 1, 2)
@@ -346,72 +349,149 @@ def run_tests_gurobi(
     return test_output, duration
 
 
-def validate(n, seed=1, verbose=0, log=True, log_all=False, del_after=True):
+def run_tests_pulp(
+    tests: List[InstantiatedInputSet], verbose=0, log=True, log_all=False
+) -> Tuple[List[TestCase], int]:
+    """
+    Runs the list of tests specified under pulp allocation algorithm (assign_work_pulp)
+
+    @param tests: tests to run
+    @param verbose: determines amount of logging to console (values: 0, 1, 2)
+    @param log: Enable log file writing (summary and infeasible/erroneous distributions)
+    @param log_all: If logging enabled, log all tests generated (in addition to summary/infeasible)
+    """
+
+    if not log and verbose >= 0:
+        print("Logging disabled")
+    elif log and not log_all and verbose >= 0:
+        print("Logging all disabled; will only give infeasible cases + summary info")
+
+    n_tests = len(tests)
+    test_output: List[TestCase] = [None] * n_tests
+
+    # Infeasible tests indices
+    infeasible = {
+        PuLPInfeasibleError.__name__: [],
+        pulp.const.PulpError.__name__: [],
+    }
+
+    # TIME start
+    start = time.time_ns() // 1000
+
+    for i_test in range(n_tests):
+        if verbose >= 0:
+            printProgressBar(
+                i_test, n_tests, prefix="Progress:", suffix="Complete", length=80,
+            )
+        input_set, workers, data_set = tests[i_test]
+
+        stats = None
+        timing = None
+        error = None
+
+        # run test
+        if verbose >= 1:
+            print("*** RESULTS {} ***".format(i_test))
+            print("n: {}, k: {}".format(input_set.n, input_set.k))
+        try:
+            [assigned_ids, timing] = assign_work_pulp(
+                workers, data_set, input_set.beta, input_set.s_min
+            )
+            assigned = [w for w in workers if w.id in assigned_ids]
+
+            stats = Stats(input_set, workers)
+
+            if verbose >= 1:
+                print(stats)
+            elif verbose >= 2:
+                print("\nAll workers:")
+                print(workers)
+                print("\nAssigned workers:")
+                print(assigned)
+        except (pulp.const.PulpError, PuLPInfeasibleError) as e:
+            infeasible[e.__class__.__name__].append(i_test)
+            error = repr(e)
+            if verbose >= 1:
+                print(e)
+        finally:
+            feasible = error is None
+            test_case = TestCase(input_set, feasible, workers, stats, timing, error)
+            test_output[i_test] = test_case
+
+    # TIME end
+    duration = (time.time_ns() // 1000) - start
+
+    log_test_output("pulp", test_output, infeasible, duration, verbose, log, log_all)
+
+    return test_output, duration
+
+
+def validate(
+    n, run_a, run_b, seed=1, verbose=0, log=True, log_all=False, del_after=True
+):
     # tolerance for cost difference (gurobi has rounding errors)
     TOLERANCE = 0.001
     # gen tests
     print("*** Generating tests ***")
-    tests_h = gen_test_inputs(n, seed)
-    tests_g = gen_test_inputs(n, seed)
+    tests_a = gen_test_inputs(n, seed)
+    tests_b = gen_test_inputs(n, seed)
 
     # run
-    print("\n*** Running heuristic ***")
-    output_h, duration_h = run_tests_heuristic(tests_h, verbose, log, log_all)
-    print("\n*** Running gurobi ***")
-    output_g, duration_g = run_tests_gurobi(tests_g, verbose, log, log_all)
+    print("\n*** Running method A ***")
+    output_a, duration_a = run_a(tests_a, verbose, log, log_all)
+    print("\n*** Running method B ***")
+    output_b, duration_b = run_b(tests_b, verbose, log, log_all)
 
     comparison = []
     issues = []
 
-    n_gurobi_suboptimal = 0
-    n_heuristic_suboptimal = 0
+    n_a_suboptimal = 0
+    n_b_suboptimal = 0
     n_feasibility_mismatch = 0
 
     # validate output
     print("\n*** Validating solutions ***")
-    for i, (test_h, test_g) in enumerate(zip(output_h, output_g)):
-        # heuristic output
-        feasible_h = test_h.feasible
-        stats_h = test_h.stats
-        # timing_h = test_h.stats
-        # gurobi output
-        feasible_g = test_g.feasible
-        stats_g = test_g.stats
-        # timing_g = test_g.stats
+    for i, (test_a, test_b) in enumerate(zip(output_a, output_b)):
+        # A output
+        feasible_a = test_a.feasible
+        stats_a = test_a.stats
+        # B output
+        feasible_b = test_b.feasible
+        stats_b = test_b.stats
 
-        if (not feasible_h) and (not feasible_g):
+        if (not feasible_a) and (not feasible_b):
             msg = "({}) both feasible".format(i)
             comparison.append(msg)
-        elif feasible_g != feasible_h:
-            msg = "({}) Feasibility mismatch: Heuristic: {}, Gurobi: {}".format(
-                i, feasible_h, feasible_g
+        elif feasible_a != feasible_b:
+            msg = "({}) Feasibility mismatch: A: {}, B: {}".format(
+                i, feasible_a, feasible_b
             )
             comparison.append(msg)
             issues.append(msg)
             n_feasibility_mismatch += 1
         else:
             # compare costs
-            cost_h = stats_h.total_cost
-            cost_g = stats_g.total_cost
-            diff = abs(cost_g - cost_h)
+            cost_a = stats_a.total_cost
+            cost_b = stats_b.total_cost
+            diff = abs(cost_a - cost_b)
             if diff > TOLERANCE:
-                msg = "({}) Cost mismatch: diff: {} (Heuristic: {}, Gurobi: {})".format(
-                    i, diff, cost_h, cost_g
+                msg = "({}) Cost mismatch: diff: {} (A: {}, B: {})".format(
+                    i, diff, cost_a, cost_b
                 )
                 comparison.append(msg)
                 issues.append(msg)
-                if cost_h > cost_g:
-                    n_heuristic_suboptimal += 1
+                if cost_a > cost_b:
+                    n_a_suboptimal += 1
                 else:
-                    n_gurobi_suboptimal += 1
+                    n_b_suboptimal += 1
             else:
                 msg = "({}) Same cost".format(i)
                 comparison.append(msg)
 
     if del_after:
-        del tests_h, tests_g, output_g, output_h
+        del tests_a, tests_b, output_a, output_b
 
-    n_suboptimal = n_gurobi_suboptimal + n_heuristic_suboptimal
+    n_suboptimal = n_a_suboptimal + n_b_suboptimal
 
     print("\n*** Stats ***")
     print("Tests generated:", n)
@@ -422,25 +502,13 @@ def validate(n, seed=1, verbose=0, log=True, log_all=False, del_after=True):
     )
     print("Optimality mismatches: {} ({:.2%})".format(n_suboptimal, n_suboptimal / n))
     print(
-        "Heuristic runtime: {}ms (total), {:0.2f}ms (mean)".format(
-            duration_h, duration_h / n
-        )
+        "A runtime: {}ms (total), {:0.2f}ms (mean)".format(duration_a, duration_a / n)
     )
+    print("A suboptimality: {} ({:.2%})".format(n_a_suboptimal, n_a_suboptimal / n))
     print(
-        "Heuristic suboptimality: {} ({:.2%})".format(
-            n_heuristic_suboptimal, n_heuristic_suboptimal / n
-        )
+        "B runtime: {}ms (total), {:0.2f}ms (mean)".format(duration_b, duration_b / n)
     )
-    print(
-        "Gurobi runtime: {}ms (total), {:0.2f}ms (mean)".format(
-            duration_g, duration_g / n
-        )
-    )
-    print(
-        "Gurobi suboptimality: {} ({:.2%})".format(
-            n_gurobi_suboptimal, n_gurobi_suboptimal / n
-        )
-    )
+    print("B suboptimality: {} ({:.2%})".format(n_b_suboptimal, n_b_suboptimal / n))
 
     return comparison, issues
 

@@ -51,3 +51,11 @@ class GurobiInfeasibleError(Exception):
         msg = "Gurobi model is infeasible"
         super().__init__(msg)
 
+
+class PuLPInfeasibleError(Exception):
+    __name__ = "PuLPInfeasibleError"
+
+    def __init__(self) -> None:
+        msg = "PuLP model is infeasible"
+        super().__init__(msg)
+
