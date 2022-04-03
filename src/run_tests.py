@@ -24,23 +24,33 @@ LOG_ID
 async def run_tests(arg_nb_ip=None):
     all_logs = {}
 
-    s_min_values = [1, 10, 100, 250, 500]
-    # s_min_values = [256]
+    # weights_type_values = ["xavier", "kaiming", "orthogonal"]
+
+    # s_min_values = [1, 10, 100, 250, 500]
+    s_min_values = [1] + list(2 ** x for x in range(5, 9))
 
     # beta_values = [1, 3, 5]
-    beta_values = [1, 2, 3, 4, 5]
-    # beta_values = [2]
+    # beta_values = [1, 3, 5]
+    beta_values = [5]
 
-    num_global_cycles_values = [2, 4, 6, 8, 10]
+    num_global_cycles_values = [80]
     # num_global_cycles_values = [10]
 
-    max_time_values = [2.5, 5, 7.5, 15, 20]
-    # max_time_values = [15]
+    # max_time_values = range(10)
+    max_time_values = [600]
 
     fee_type = "constant"
 
+    weight_type = "xavier"
+
     param_set = list(
-        product(s_min_values, beta_values, num_global_cycles_values, max_time_values)
+        product(
+            # weights_type_values,
+            s_min_values,
+            beta_values,
+            num_global_cycles_values,
+            max_time_values,
+        )
     )
 
     prefix_len = len(str(len(param_set)))
@@ -54,6 +64,7 @@ async def run_tests(arg_nb_ip=None):
             "S_MIN": s_min,
             "BETA": beta,
             "NUM_GLOBAL_CYCLES": num_global_cycles,
+            "WEIGHT_TYPE": weight_type,
             "MAX_TIME": max_time,
             "FEE_TYPE": fee_type,
             "LOG_ID": log_prefix,
