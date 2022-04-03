@@ -15,18 +15,23 @@ authors:
   - given-names: Edan
     family-names: ' Parker'
     email: edan.parker@queensu.ca
-    affiliation: 'Queen''s University '
+    affiliation: "Queen's University "
   - given-names: Jared
     family-names: McGrath
     email: jared.mcgrath@queensu.ca
-    affiliation: 'Queen''s University '
+    affiliation: "Queen's University "
   - given-names: Michael
     family-names: Treagus
     email: 17mjt@queensu.ca
-    affiliation: 'Queen''s University '
+    affiliation: "Queen's University "
   - given-names: Jack
     family-names: Malloch
     email: 17jcm@queensu.ca
-    affiliation: 'Queen''s University '
+    affiliation: "Queen's University "
+  - given-names: Duncan
+    family-names: Mays
+    affiliation: "Queen's University "
+    email: duncan.mays@queensu.ca
+repository-code: 'https://github.com/bryan-hoang/mthe-493-group-a2'
 keywords:
   - edge-learning
