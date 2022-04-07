@@ -4,7 +4,7 @@ This document describes the high-level architecture of the experimental set up. 
 
 ## Bird's Eye View
 
-Here's a flowchart diagrams of the network:
+Here is a flowchart diagram of the network:
 
 ```mermaid
 flowchart LR
@@ -37,7 +37,7 @@ sequenceDiagram
     W->>-C: Return and aggregate results
 ```
 
-On the highest level, this project uses the [axon-ecrg](https://github.com/DuncanMays/axon-ECRG#readme) edge computing framework to create a proof of concept system for parallelizing work through distributed computing, which aims to optimize the amount of data sent to each worker to minimize he overall cost incurred by the job deployer,
+On the highest level, this project uses the [axon-ecrg](https://github.com/DuncanMays/axon-ECRG#readme) edge computing framework to create a proof of concept system for parallelising work through distributed computing, which aims to optimize the amount of data sent to each worker to minimize he overall cost incurred by the job deployer,
 
 ## Code Map
 
@@ -55,7 +55,7 @@ A server that workers sign in to for discovery by clients. For more information,
 
 A server that signs in to a noticeboard for discovery by clients. It can receive units of work from a client to compute, and then return the results to client.
 
-This worker has been modified to have wages set for it, which means they won't work on something that won't pay above their eet wage.
+This worker has been modified to have wages set for it, which means they won't work on something that won't pay above their minimum wage.
 
 ### `src/client.py`
 
