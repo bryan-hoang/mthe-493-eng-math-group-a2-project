@@ -1,0 +1,35 @@
+\documentclass[
+    draft,
+    final,
+]{../mthe-report}
+
+\usepackage{../mthe-report}
+
+\addbibresource{\main/jared.bib}
+
+\title{Citations}
+\author{Jared McGrath}
+\date{\today}
+
+\begin{document}
+    \maketitle
+    \thispagestyle{empty}
+    \newpage
+    \frontmatter
+    \tableofcontents
+    \listoffigures
+    % \listoftables
+
+    \mainmatter{}
+    
+    Hello world
+    
+    \cite{McGrath_Optimization_of_Data}
+    
+    \cite{mip_2008}
+
+    \backmatter{}
+    \appendix
+    Sup
+    % \subfile{appendices/b-glossary}
+\end{document}

@@ -1,0 +1,101 @@
+\providecommand{\main}{..}
+\documentclass[../mthe-493-final-project.tex]{subfiles}
+
+%Technical introduction. Describe design problem setup and constraints.
+
+\begin{document}
+    \chapter{Problem Description}
+    \label{ch:problem-description}
+
+    \section{Mathematical Description}
+
+    We introduce a network with
+
+    \begin{itemize}
+        \item \textit{Manager} $m$
+        \item Set of \textit{workers} $\mathbf{W} = \{w_1, ..., w_k\}$, $\vert\mathbf{W}\vert = k$
+        \item A \textit{job}, $J$, determined by the manager and consisting of the tuple $J = (D, f)$
+              \begin{itemize}
+                  \item Data set $D = \{d_1, ..., d_n\}$, $\vert D\vert = n$. Each datum is of uniform size $P_d$
+                  \item Work function $f: D \rightarrow \mathbf{M}$ where $\mathbf{M}$ is the output space. A given job will have a work function producing output of fixed size $P_m$
+              \end{itemize}
+        \item A fixed upper bound on \textit{job run time}, $T$
+    \end{itemize}
+
+    We define the set of homogeneous \textit{slices} of job $J$ to be
+
+    \[S = D \times \{f\} = \{(d_1, f), ..., (d_k, f)\}\]
+
+    A \textit{subjob} is a subset of slices which is assignable to a worker
+
+    \[D_i \subset S, \quad \vert D_i \vert = x_i\]
+
+    The goal of our system is to assign disjoint subjobs to workers such that the subjobs form a partition of $D$
+
+    \[D = \bigcup\limits_{w_j \in \mathbf{W}} D_j\]
+
+    which minimizes the total paid out in worker fees, subject to some constraints:
+
+    \begin{itemize}
+        \item The total time to compute job $J$ is no greater than the upper bound on training time, $T$. That is, each worker must compute their subjob within $T$ units of time.
+        \item \textit{Minimum worker assignment}, $\beta$, sets the minimum number of workers which must be assigned work, i.e.,
+              \[\beta \leq \vert \{x_i : x_i > 0\} \vert \leq k\]
+        \item \textit{Minimum assigned work}, $s^{min}$, sets the minimum quantity of slices that must be assigned to any worker receiving non-zero slices; i.e. a worker must be assigned \textit{at least} $s^{min}$ slices, or 0 otherwise. This ensures that workers do not compute too few slices to be effective in an application like federated learning. (TODO: Citation)
+        \item \textit{Maximum assigned work}, $s^{max}_i$, is the maximum quantity of slices that can be assigned to and executed by $w_i$ within training time $T$. Because workers are assumed to have heterogeneous compute capabilities, this quantity will differ for each worker and work function. This value cannot generally be known with certainty, but modelling in a later section (TODO: Insert ref) will provide a method for estimation.
+    \end{itemize}
+
+    % Cycle Time/Benchmarks used to be here, moved to 'Network Model' chapter
+
+    We formalize this as a constrained optimization problem. Slices of the data set are homogeneous, and hence it is only required to determine the size of subjobs assigned to workers, $x_i$, minimizing total fees paid out to workers:
+
+    \[ \min_{x_i \in \mathbb{Z}_{\geq 0}} \ \sum_{i=1}^k x_i c_i \]
+
+    subject to constraints
+
+    \begin{align*}
+        \\
+        s^{min} \leq x_i \leq s^{max}_i, &\qquad \text{for} \ i=1,...,k \\
+        \sum_{i = 1}^k x_i = n                                          \\
+        \beta \leq \vert \{x_i : x_i > 0\} \vert                        \\
+        x_i \in \mathbb{Z}_{\geq 0},     &\qquad \text{for} \ i=1,...,k
+    \end{align*}
+
+    % Note from Jared: The other stuff that was here was moved to chapter 7
+
+    \section{Distributed Computing}
+    \label{sec:Distributed-Computing}
+
+    TODO: This was copied from proposal report. Should revise for concision and/or only include application stuff that is strictly related to the above description.
+    TODO: Should explain what $D$, $f$ $\mathbf{M}$, $T$ (and $\tau$?) are in the context of federated learning.
+    ***
+    TODO: split this section into it's background content & it's specific problem description content
+
+    \textit{Distributed computing} is the technique of linking multiple computers together to form a network for sharing data and coordinating processing power. A computer network can be configured in either a \textit{decentralized} or \textit{centralized} way. In a decentralized network, all computers can connect and communicate with each other. There is no single controlling authority which dictates the flow of information through the network.
+
+    A centralized network is configured with a hierarchical structure and is controlled by a central authoritative computer. The central authority can directly connect to all other computers and control their function. In distributed computing, this central authority is called an \textit{orchestrator}. The orchestrator can employ the compute resources of the entire network to perform large parallel computation. The other computers in the network which perform the computation are called \textit{workers}. Since the application of this project's implementation is parallel learning, its focus will be on centralized networks.
+
+    A centralized distributed computing network can be modelled mathematically using the notion of a network that was established in ~\autoref{sec:mathematical-description}. Denoting a collection of $n$ computers as $\mathbf{V} = (v_1, v_2, ..., v_n)$ with computation rates $\mathbf{R} = (r_1, r_2, ..., r_n)$ and price per processor-hour $\mathbf{P} = (p_1, p_2, ..., p_n)$, each $v_i$ can be thought of as a computer with a computation rate $r_i$ and a price to employ of $p_i$. In a \textit{heterogeneous} computer network, computational capacity and price of compute will vary from machine to machine.
+
+    The structure of the distributed computing network is represented as the directed graph $\mathbf{G} = (\mathbf{V}, \mathbf{A})$. Because in a centralized network only the orchestrator can command processing power from the other computers, the adjacency matrix $\mathbf{A}$ is zero-valued for any edge which does not connect to the orchestrator node. In other words, there are no connections between any two computers that are not the orchestrator for the purposes of distributed computing. This feature is in addition to the other assumptions made for $\mathbf{A}$ in~\autoref{sec:mathematical-description}.
+
+    When the orchestrator uses the network to compute in parallel, it is deploying a job denoted $J = (f,D)$ which consists of a function $f$ to be computed on a dataset $D \subseteq \mathbb{X}$. Here $\mathbb{X}$ is the infinite set of all possible input datasets. The orchestrator deploys a partition of $D$ to each employed worker along with copies of the work function $f$ for computation. The workers each return their computed results to the orchestrator, and these are the constituents of the result set $Y$.
+
+    In distributed computing, it is in the best interest of the network to maximize the number of jobs that can be sent over the network and minimize the price to use the network. Therefore, optimizing for low run-time and cost of computing is desirable.
+
+    By modelling the distributed computing network with the mathematical definition for a network, the run time and cost can be defined using the \textit{completion time} and \textit{resource price} functions, respectively. Given a job $J = (f,D)$ which is to be sent to the network and computed in parallel, one can minimize these functions regarding all variations of partitions of $D$ and their allocations to workers. If this is done before making use of the network, jobs can then be deployed strategically to minimize for these values and maximize the network's efficiency.
+
+    \section{Triple Bottom Line}
+
+    TODO: This was copied from proposal report. Should revise for concision and/or only include application stuff that is strictly related to the above description. Also should consider moving TBL stuff to chapter 11?
+
+    %     - Helping research progress faster
+    %     - Privacy concerns (e.g., fingerprinting)
+    The suboptimal allocation of resources in edge computing will lower its overall performance, decreasing its effectiveness as an alternative to traditional computing and potentially making it a worse alternative. Thus, optimizing it is a prudent step in making it a preferable computing alternative for helping advance industry processes and the pace of research. But the optimization requires gathering information regarding the computational capabilities of a person's device, which can raise privacy concerns. It is a similar problem observed in device fingerprinting where user's privacy is intruded upon by unwanted tracking~\cite{laperdrix_browser_2020}. As such, it is imperative that when collecting statistics about devices working on the network, the information collected adheres to Canada’s federal private-sector privacy law, the \textit{Personal Information Protection and Electronic Documents Act} (PIPEDA)~\cite{noauthor_privacy_nodate}.
+
+    % - Lowered costs for computing
+    % - Electricity costs
+    % - Economy of working as a node (being paid due to minimum working wage)
+    % - Edge computing vs traditional Cloud computing e.g., AWS server farms (ref)
+    % - Less ewaste by using computing power of already existing devices
+    Suboptimally allocating resources in edge computing can also result in increased financial and environmental costs for people using the edge computing network through increased energy usage. In DL, the low performance caused by the limitations of the weakest worker results in a large amount of idle time on the orchestrator. Since idle or underutilized servers still use between 50-65 percent of the energy of fully utilized servers~\cite{noauthor_triple_nodate}, minimizing this time through reducing the impact of the weakest worker will result in increased energy efficiencies that will reduce the costs associated with wasted energy.
+\end{document}

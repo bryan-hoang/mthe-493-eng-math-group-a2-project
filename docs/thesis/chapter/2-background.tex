@@ -1,72 +1,48 @@
 \providecommand{\main}{..}
 \documentclass[../mthe-493-final-project.tex]{subfiles}
 
-%Technical introduction. Describe design problem setup and constraints.
+%Background &/or literature review on 1. Math, 2. Distributed Computing, 3. Federated Learning.
 
 \begin{document}
-    \chapter{Problem Description}
-    \label{ch:problem-description}
+    \chapter{Background}
+    \label{ch:background}
 
-    \section{Mathematical Description}
+    \section{Contemporary Optimization}
 
-    We introduce a network with
+    A review of contemporary optimization problem classifications are identified below, so as to provide context for the optimization problem as stated in the problem description. (TODO: Insert ref)
 
-    \begin{itemize}
-        \item \textit{Manager} $m$
-        \item Set of \textit{workers} $\mathbf{W} = \{w_1, ..., w_k\}$, $\vert\mathbf{W}\vert = k$
-        \item A \textit{job}, $J$, determined by the manager and consisting of the tuple $J = (D, f)$
-              \begin{itemize}
-                  \item Data set $D = \{d_1, ..., d_n\}$, $\vert D\vert = n$. Each datum is of uniform size $P_d$
-                  \item Work function $f: D \rightarrow \mathbf{M}$ where $\mathbf{M}$ is the output space. A given job will have a work function producing output of fixed size $P_m$
-              \end{itemize}
-        \item A fixed upper bound on \textit{job run time}, $T$
-    \end{itemize}
+    \subsection{Convex Optimization}
+    \label{ssec:Convex Optimization}
 
-    We define the set of homogeneous \textit{slices} of job $J$ to be
+    \subsubsection{Linear Programming}
+    \label{sssec:Linear Programming}
 
-    \[S = D \times \{f\} = \{(d_1, f), ..., (d_k, f)\}\]
+    \subsubsection{Integer Linear Programming}
+    \label{sssec:Linear Programming}
 
-    A \textit{subjob} is a subset of slices which is assignable to a worker
+    \subsection{Constrained Optimization}
+    \label{ssec:Constrained Optimization}
 
-    \[D_i \subset S, \quad \vert D_i \vert = x_i\]
-
-    The goal of our system is to assign disjoint subjobs to workers such that the subjobs form a partition of $D$
-
-    \[D = \bigcup\limits_{w_j \in \mathbf{W}} D_j\]
-
-    which minimizes the total paid out in worker fees, subject to some constraints:
-
-    \begin{itemize}
-        \item The total time to compute job $J$ is no greater than the upper bound on training time, $T$. That is, each worker must compute their subjob within $T$ units of time.
-        \item \textit{Minimum worker assignment}, $\beta$, sets the minimum number of workers which must be assigned work, i.e.,
-              \[\beta \leq \vert \{x_i : x_i > 0\} \vert \leq k\]
-        \item \textit{Minimum assigned work}, $s^{min}$, sets the minimum quantity of slices that must be assigned to any worker receiving non-zero slices; i.e. a worker must be assigned \textit{at least} $s^{min}$ slices, or 0 otherwise. This ensures that workers do not compute too few slices to be effective in an application like federated learning. (TODO: Citation)
-        \item \textit{Maximum assigned work}, $s^{max}_i$, is the maximum quantity of slices that can be assigned to and executed by $w_i$ within training time $T$. Because workers are assumed to have heterogeneous compute capabilities, this quantity will differ for each worker and work function. This value cannot generally be known with certainty, but modelling in a later section (TODO: Insert ref) will provide a method for estimation.
-    \end{itemize}
-
-    % Cycle Time/Benchmarks used to be here, moved to 'Network Model' chapter
-
-    We formalize this as a constrained optimization problem. Slices of the data set are homogeneous, and hence it is only required to determine the size of subjobs assigned to workers, $x_i$, minimizing total fees paid out to workers:
-
-    \[ \min_{x_i \in \mathbb{Z}_{\geq 0}} \ \sum_{i=1}^k x_i c_i \]
-
-    subject to constraints
-
+    A constrained optimization problem is an optimization problem in which the objective function $f$ must be minimized subject to \textit{hard constraints} $g_i$ and $h_j$, for $i=1,...,n$ and $j=1,...,m$.
+    \[ \min \ f(\mathbf{x}) \]
+    subject to
     \begin{align*}
-        \\
-        s^{min} \leq x_i \leq s^{max}_i, &\qquad \text{for} \ i=1,...,k \\
-        \sum_{i = 1}^k x_i = n                                          \\
-        \beta \leq \vert \{x_i : x_i > 0\} \vert                        \\
-        x_i \in \mathbb{Z}_{\geq 0},     &\qquad \text{for} \ i=1,...,k
+        g_i(\mathbf{x}) &= c_i    & &\text{for} \ i = 1,...,n \ \textit{equality constraints}    \\
+        h_j(\mathbf{x}) &\geq d_j & &\text{for} \ j = 1,...,m \ \textit{inequality constraints}. \\
     \end{align*}
 
-    % Note from Jared: The other stuff that was here was moved to chapter 7
+    jot notes:
+    - write out explicitly what our objective function and (in)equality constraints are
+    - demonstrate that our objective function is linear in $\mathbf{x}$
 
-    \section{Application}
-    \label{sec:Application}
+    \section{Distributed Computing}
+    \label{sec:Distributed-Computing}
 
     TODO: This was copied from proposal report. Should revise for concision and/or only include application stuff that is strictly related to the above description.
     TODO: Should explain what $D$, $f$ $\mathbf{M}$, $T$ (and $\tau$?) are in the context of federated learning.
+    
+    ***
+    TODO: split this section into it's background content & it's specific problem description content
 
     \textit{Distributed computing} is the technique of linking multiple computers together to form a network for sharing data and coordinating processing power. A computer network can be configured in either a \textit{decentralized} or \textit{centralized} way. In a decentralized network, all computers can connect and communicate with each other. There is no single controlling authority which dictates the flow of information through the network.
 
