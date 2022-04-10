@@ -1,15 +1,146 @@
 \providecommand{\main}{..}
 \documentclass[../mthe-493-final-project.tex]{subfiles}
 
-%Tool identification & evaluation. Lay out all the "eng tools" we considered for a given section & make a case for each one. Selection will be handled next under implementation - rubric satisfying section
+%Tool identification & evaluation. Lay out all the "eng tools" we considered for a given section & make a case for each one. Determine which tools will be used too. Implementation and usage of selected tools in the next chapter
 \begin{document}
     \chapter{Engineering Tools}
     \label{ch:engineering-tools}
-
-    \section{Math}
-    \label{sec:Math}
+    
     \section{Distributed Computing}
-    \label{sec:Distributed-Computing}
-    \section{Federated Learning}
-    \label{sec:Federate-Learning}
+    \label{sec:distributed-computing-engineering-tools}
+    
+    \subsection{Requirements and Evaluation Framework}
+    %% Predetermine how we are going to evaluate these tools
+    To model the design problem and solution, appropriate tools are required. The tools discussed in this section will represent the distributed computing environment in isolation. The details of the optimization and federated learning tools will be expanded on in their respective sections, but baseline compatibility with the chosen framework will be crucial. Two aspects must be considered: the physical hardware to represent the different agent in the experimental setup, and the software framework that will manage the program flow. 
+    
+    The hardware used to serve as the learners must be relatively simple to setup, must be able to execute the tasks aligned with the application, and must have variable computational capacity to model heterogeneity. The hardware that will represent the orchestrator must be able to communicate with the learner via software means, and must be capable of aggregating the results from the parallel tasks.
+    
+    To facilitate the communication in the network, a framework is required to send and receive data. This network needs to be reliable, and effective at reporting detailed errors. To help this aspect, there should be a means of registering presence and identity of the learners. In other words, the orchestrator should know at any time how many learner are available for use, and should have a means of addressing each one directly. If a problem occurs during experimentation, such as losing connection to a learner, this should be clearly stated so that the experiment can be rerun or disregarded. Some software will need to benchmark learners, send this data back to the orchestrator so that the optimization tools can be applied and the task load distribution can be determined. Then, the application software must be run on each of the learners, in this case, training a neural network. Metrics such as timing, model accuracy, total cost and benchmarking accuracy need to be recorded accurately and delivered to a central location for later analysis. Finally, the results from the task execution on the various learners must be aggregated, and the final results displayed. Additionally, the software used must be able to implement all of the problem constraints as specified. In particular, the way that learners charge a fee for performing a unit of work, and the granularity of control that the orchestrator uses to distribute tasks with cost considered must satisfy the requirements. 
+    
+    \subsection{Tools Explanation}
+    %% Introduce tools to be evaluated
+    The hardware considered to represent learners were Raspberry PIs and regular laptops/desktops. A Raspberry PI is a small, minimal computer that is cheap to acquire and quick to setup. Regular laptops and desktops would be simple the personal computers that group members and their friends possess. 
+    
+    The software frameworks considered were Distributed Compute Protocol (DCP) from King's Distributed Systems and Axon from this project's graduate collaborator Duncan Mays. DCP is a framework and business that lets users sign up to add their laptop to a global worker pool, where they can receive some money for having various parallelizable tasks run on their computers while they are idle. It is the foundation that underlies a successful business that has applications in the healthcare industry and in post-graduate research. Axon is a minimal framework that allows users to run experimental setups of distributed work. It is far more extensible given that it is minimal, but is not professionally supported.
+
+    \subsection{Evaluation of Tools}
+    %% Evaluate tools
+    Raspberry PIs are relatively cheap and are easy to setup. They all have the same computational ability, however the CPUs can be overclocked at different rates to simulate heterogeneity in the learner pool. Without loss of generality, the laptops selected would have varying capacity across CPU clock speed, number of cores, amount of memory, and general architecture. This would provide a more natural variance across learners. A crucial make-or-break point of analysis was in the ability of the hardware to actually perform the federated learning tasks. Raspberry PIs were originally thought to be able to handle these tasks, but after a series of prototype attempts, it was concluded that they are essentially too minimal in their abilities and will produce unusable results from their work. 
+    
+    Comparing DCP and Axon frameworks, one can look at the basic features. DCP is written in JavaScript, whereas Axon is written in Python. Both languages do not have much of a learning curve and both support machine learning libraries - TensorFlow for JavaScript and PyTorch for Python. DCP uses a custom network protocol for communication that is built on top of HTTP, whereas Axon uses Remote Procedure Call (RPC) to accomplish this feature. Both methods are effective and fault tolerant, however RPC does have a little more customization when it comes to timeout configurations. DCP is well supported by a business where Axon is supported solely by Duncan, though Duncan is very familiar with all aspects of the project. Both systems have a means of managing identity and presence, for DCP it is handled internally and is not user-facing, and in Axon a module called a notice board is available to meet this need. Neither system was initially set up to record metrics. On Axon, it was relatively trivial to implement these changes in an early prototype stage. With DCP, it was more difficult to dig in to the internals of how the system works to add these features manually, but the team was able to meet with the DCP owners to ask for these changes, and they were added in a timely manner. The critical requirement of being able to represent the fee-exchange system in a way that aligned with the problem specifications. The way that DCP fees work is the learner would set the minimum wage that they would be willing to receive, and the job deployer/orchestrator would set a fixed price that they are willing to pay. As long as the price meets or exceeds the minimum wage, then the learner is chosen for the job and all learners would be paid the same wage. The experimental setup requires learners to be able to be paid different wages that should be correlated to their efficacy at working. Cost is not implemented inherently in Axon, so there is a high degree of freedom. 
+    
+    Rubric target - economics evaluation, quantitative justification
+
+    \section{Optimization}
+    \label{sec:optimization-engineering-tools}
+    
+    % Write about SciPy linprog, PuLP, Gurobi, and heuristics in the same way as the presentation.
+    
+    The optimization problem as defined in \ref{sec:optimization-problem-description} is a mixed integer programming (MIP) problem \cite{wolsey_mip}. As with other classes of mathematical programming problems, an \textit{optimization solver} is typically employed in the implementation of systems which require such problems to be solved. There are many such products, libraries, and resources that provide this functionality. These resources vary in scope, features, robustness; they may be open-source or closed-source, and commercial or freeware \cite{greenberg_nature_2010}. Most notably, libraries provide varying degrees of control over how a mathematical program may be specified, and (in the case of libraries providing multiple solver algorithms) which solver should be used to solve it.
+    
+    \subsection{Tool Criteria}
+    \label{ssec:optimization-tool-criteria}
+    
+    Several criteria have been identified to allow a qualitative ranking of candidate solver libraries. This analysis will then be used to justify the selection of a solver library for further development of the project.
+    
+    On a side note, it is important to acknowledge that the constraint in Equation \ref{eq:optimization-constraint-3} (henceforth referred to as the \textit{beta constraint}) distinguishes this problem in difficulty from a standard MIP problem. Because of this, a portion of solver libraries will be unable to solve the problem as-stated, thus reducing the pool of candidate solvers from which to choose.
+    
+    The criteria that has been identified to evaluate candidate optimization solvers is listed below (in order of most-important to least-important), followed by an explanation of each criterion and their relative ranking of importance.
+    
+    \begin{enumerate}
+        \item Ability to provide an optimal solution
+        \item Algorithmic time complexity
+        \item Ease of development
+        \item Data privacy \& security
+    \end{enumerate}
+    
+    \textbf{Ability to provide an optimal solution} is an metric to assess whether a library is capable of providing feasible and optimal solution to the optimization problem as defined in \ref{sec:optimization-problem-description}. As mentioned above, optimization solver libraries vary in their scope, features, and robustness; not all libraries are capable of handling integrality constraints and/or the constraint in Equation \ref{eq:optimization-constraint-3}.
+    This is selected as the primary criterion because a feasible and optimal solution to allocate data for minimal cost is paramount to the goals of the project. The selected solver and its implementation must be able to correctly identify the feasibility of a job given a set of learners and system parameters. It must then provide the minimum-cost allocation of data to learners.
+    
+    \textbf{Algorithmic time complexity} (running time) is the asymptotic behaviour of the solver's run time as the size of the input grows, commonly referred to as ``Big-O Notation''\cite{sipser_introduction_2013}. In this case, the `input size' is a combination of the size of the data set, $n$, and the number of learners available to the orchestrator, $k$. To deal with the varying levels of control libraries provide over the selection of algorithms, the running time will be assessed directly instead of a rigorous assessment of time complexity. A case-study MIP problem will be implemented in each library. The average running time of the case-study problem over a set of 10,000 input parameters will be calculated and used to rank candidates.
+    This criterion is ranked second most-important because focus of the project on optimal data allocation \textit{under training time constraints}. The total execution time of the system includes network overhead, training overhead, and in particular, the orchestrator overhead. Orchestrator overhead includes the running time of the optimization solver. If this duration is minimized, more of the allotted time can be dedicated to training. In turn, this enlarges the feasible set by increasing the maximum quantity of work that can be completed by learners, $s^{max}_i$, in the allocated time $T$ (as defined in Section \ref{sec:optimization-problem-description}). The larger enlarged feasible set may well contain the optimal solution. Therefore, it is of high priority that the optimization solver's running time is minimized.
+    
+    \textbf{Ease of development} is a qualitative metric that indicates how challenging it would be to implement a particular library into the project's code base. Some key components in this metric include
+    \begin{itemize}
+        \item ease of integration with the project's code base, written in the Python programming language \cite{10.5555/1593511},
+        \item level of detail and completeness of library documentation (API specification, reference manuals, etc.), and
+        \item availability of resources online (examples, tutorials, articles, etc.) A reliable proxy for this component is the number of weekly downloads from official sources.
+    \end{itemize}
+    This is the next most-important consideration because of time constraints on development efforts towards the project; it is not feasible to reverse-engineer a library's implementation given the duration and scope of this project.
+    
+    \textbf{Data privacy \& security} serves as an indication of the ethical implications of selecting a particular library through an assessment of how transparent and secure a given library is. Open-source libraries that contain no closed-source third-party code are very transparent regarding data privacy and data handling. When compared to their closed-source counterparts, open-source software projects are more secure and contain fewer vulnerabilities \cite{clarke2009open}. Additionally, closed-source projects are not required to disclose their data handling practices, which poses concerns about data privacy.
+    This metric is important to consider due to the potential range of applications of this system in various industries. For example, medical research facilities may require the use of confidential patient information in the data set for a machine learning model. It is crucial that the confidentiality of this data is respected, as a security breach and/or mishandling of data would breach patient confidentiality and may have legal implications.
+    
+    \subsection{Tool Evaluation}
+    \label{ssec:optimization-tool-evaluation}
+    
+    Having identified four key criteria, four candidate optimization solvers were identified. In no particular order, they are
+    \begin{itemize}
+        \item SciPy
+        \item PuLP
+        \item Gurobi
+        \item Heuristic Algorithm
+    \end{itemize}
+    All candidates satisfy the basic metric of having an interface with Python. The merits and flaws of each are now examined individually.
+    
+    \subsubsection{SciPy}
+    \label{sssec:optimization-candidate-scipy}
+    
+    SciPy is am open-source scientific computing library for Python \cite{2020SciPy-NMeth}. It is popular, averaging over 1,000,000 downloads weekly \cite{flynn_2018_scipy}. Because of this popularity, there are many online resources for SciPy. Its documentation is also quite extensive, providing many examples and library use-cases.
+    
+    Included in SciPy is the \texttt{linprog} module, which supports a handful linear programming solvers (simplex, interior points methods, etc). The solvers in this library are well-optimized, taking advantage of pre-compiled binaries to accelerate their running time. This is in contrast to standard Python library, which is an interpreted language in its standard configuration.
+    
+    SciPy does not support MIP problems directly. This limitation can be resolved for some MIP problems through techniques such the \textit{relaxation} technique; however, the \textit{beta constraint} prohibits this technique from being employed in this project \cite{aps2020mosek}. For this reason, a SciPy-based solver implementation will not be feasible for this project.
+    
+    \subsubsection{PuLP}
+    \label{sssec:optimization-candidate-pulp}
+    
+    PuLP is an open-source collection of LP and MIP solvers for Python \cite{Mitchell11pulp}. It is significantly less popular than SciPy, averaging only 20,000 downloads weekly \cite{flynn_2018_pulp}. This naturally leads to fewer community resources available online. The documentation is not as extensive as that of SciPy either, furthering hindering the ease of development.
+    
+    PuLP's support for MIP problems makes it more robust than SciPy; when leveraging the simplifications in Section \ref{ssec:optimization-problem-simplification}, PuLP is be able to implement a solver for the project's optimization problem.
+    
+    PuLP takes a unique approach in its method of distributing solvers supported by the library. Some solvers included rely on third-party packages, which do not come with the PuLP library. Some of these are closed-source and require additional licensing, whilst others are operating-system dependent native libraries. This poses a data privacy and security risk, and introduces uncertainty in solver running time depending on the availability of third-party packages in the end-user's system.
+    
+    When the case-study MIP problem was implemented in PuLP, the average solver running time was 32.5 seconds over the sample of 10,000 randomly-generated input parameters.
+    
+    \subsubsection{Gurobi}
+    \label{sssec:optimization-candidate-gurobi}
+    
+    
+    
+    \subsubsection{Heuristic Algorithm}
+    \label{sssec:optimization-candidate-heuristic}
+    
+    \subsection{Tool Selection}
+    \label{ssec:optimization-tool-selection}
+    
+    The evaluation results from Section \ref{ssec:optimization-tool-evaluation} are summarized in Table \ref{tab:optimization-tool-summary}.
+    
+    \begin{center}
+    \begin{table}
+    \begin{tabular}{| c || c c c c |}
+        \hline
+        Candidate & Solves Problem? & Running Time & Development & Privacy \\ [0.5ex] 
+        \hline\hline
+        SciPy & No & N/A & Easy & Great \\ 
+        \hline
+        PuLP & Yes & Slow & Medium & Adequate \\
+        \hline
+        Gurobi & Yes & Fast & Easy & Poor \\
+        \hline
+        \textbf{Heuristic} & \textbf{Maybe} & \textbf{Varies} & \textbf{Hard} & \textbf{Great} \\
+        \hline
+    \end{tabular}
+    \caption{\label{tab:optimization-tool-summary}Summary of optimization solver candidate performance}
+    \end{table}
+    \end{center}
+    
+    % note for Jack: i just added these section headers as templates, feel free to change/get rid of them,  - jared
+    \section{Model Aggregation}
+    \label{sec:model-aggregation-engineering-tools}
+    
+    \section{Machine Learning}
+    \label{sec:machine-learning-engineering-tools}
+    
+    
 \end{document}
