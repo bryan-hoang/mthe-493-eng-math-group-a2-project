@@ -11,11 +11,13 @@
     
     \section{Optimization}
     
-    To test the efficacy of the heuristic optimization model, the solutions it produced to 10,000 experiments with varying parameters were compared against the solutions achieved by the Gurobi optimization tool. In 9.64\% of experiments both systems returned that there were no feasible points to the integer programming problem. Further, in all 10,000 experiments there were no disagreements between the models regarding problem feasibility. This indicates that the feasibility checks built into the heuristic model are complete.
+    To test the efficacy of the heuristic optimization model, the solutions it produced in 10,000 experiments with varying parameters were compared against the solutions achieved by the Gurobi optimization tool. In 9.64\% of experiments both systems returned that there were no feasible points to the integer programming problem. Further, in all 10,000 experiments there were no disagreements between the models regarding problem feasibility. This indicates that the feasibility checks built into the heuristic model are completely exhaustive.
     
-    In 86.37\% of the 10,000 experiments both frameworks came to the same solution for minimal total deployment cost. This means that in cases where there was a feasible solution, both processes achieved the same optimum in 95.59\% of those cases. Since Gurobi is a widely trusted and reputable optimization engine~\cite{gurobi}, this indicates that the heuristic model is highly proficient as an optimizer.
+    In 86.37\% of the 10,000 experiments both frameworks came to the same solution for minimal total deployment cost. This means that in 95.59\% of the cases where there was a feasible solution, both processes achieved the same optimum.
     
-    In 4.42\% of the cases where there was a feasible solution, Gurobi produced a different answer than the heuristic model. Of these,
+    In 4.42\% of the experiments for which there was a feasible solution, Gurobi and the heuristic model produced different results. Of these experiments, Gurobi achieved a lesser value in 49\%, while the heuristic model outperformed in the other 51\%. The fraction of cases where Gurobi outperforms is likely due to some small edge case which is not captured by the heuristic process. In the cases where the heuristic model achieves a lower minimum for the objective function, it is speculated that this may be due to minute sacrificies in the accuracy of Gurobi's holistic solver in turn for speed increases. However this cannot be confirmed because the Gurobi software is completely closed-source.
+    
+    Since Gurobi is a widely trusted and reputable optimization engine~\cite{gurobi}, this indicates that the heuristic model is highly proficient as an optimizer.
     
     
     \section{Parallel Learning}
