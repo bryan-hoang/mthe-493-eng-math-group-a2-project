@@ -49,18 +49,18 @@
     %     \item If \[\sum_{i=1}^k s_i > n,\] then let $x_i = s^{min}$ for $i = 1,...,k$.
     %     \item Set $l = 1$. Add 1 to $x_l$ until $x_l = s_l^{max}$, then let $l = l+1$ and repeat. Continue until \[ \sum_{i=1}^{k} x_i = n \]. This yields the optimal solution.
     % \end{enumerate}
-    
+
     \section{Distributed Computing}
     \label{sec:distributed-computing-implementation}
 
     % "Performs an economic analysis on multiple solutions and uses quantitative justification when choosing solution"
-    % 
+    %
     % Buting compute credits from KDS vs using AXON for "free". i.e., energy costs
-    
+
     \subsection{Cycle Time \& Benchmarks}
     \label{ssec:cycle-time-and-benchmarks}
 
-    TODO: Need to make this section more formal, and include proper citations to Duncan's work
+    \todo{Need to make this section more formal, and include proper citations to Duncan's work.}
 
     As specified by Duncan's work, each worker $w_i$ will be benchmarked to estimate
 
@@ -93,7 +93,6 @@
     \[s^{max}_i < \frac{T - \frac{2 P_m}{b_i}}{\frac{\tau}{C_i} - \frac{P_d}{b_i}}\]
 
     Note that these details are internal to Duncan's research and implementation. We intend to use this implementation to determine $s^{max}_i$.
-    
 
     \subsection{Network Implementation}
     \label{ssec:network-implementation}
@@ -101,18 +100,16 @@
     % Naive translation form math model to actual implementation.
     % e.g., workers are represented as machines on a network
 
-    
-    
     \begin{figure}
         \centering
-        \includegraphics{thesis/img/network-1.png}
+        \includegraphics{network-1.png}
         \caption{Caption}
         \label{fig:network-flowchart}
     \end{figure}
 
     \begin{figure}
         \centering
-        \includegraphics{thesis/img/network-2.png}
+        \includegraphics{network-2.png}
         \caption{Caption}
         \label{fig:network-sequence}
     \end{figure}
