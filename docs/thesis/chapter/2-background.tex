@@ -10,19 +10,19 @@
     \section{Distributed Computing}
     \label{sec:distributed-computing}
 
-    TODO: This was copied from proposal report. Should revise for concision and/or only include application stuff that is strictly related to the above description.
-    TODO: Should explain what $D$, $f$ $\mathbf{M}$, $T$ (and $\tau$?) are in the context of federated learning.
+    \todo{This was copied from proposal report. Should revise for concision and/or only include application stuff that is strictly related to the above description.}
+    \todo{Should explain what $D$, $f$ $\mathbf{M}$, $T$ (and $\tau$?) are in the context of federated learning.}
     
     ***
-    TODO: split this section into it's background content \& it's specific problem description content
+    \todo{split this section into it's background content \& it's specific problem description content}
 
     \textit{Distributed computing} is the technique of linking multiple computers together to form a network for sharing data and coordinating processing power. A computer network can be configured in either a \textit{decentralized} or \textit{centralized} way. In a decentralized network, all computers can connect and communicate with each other. There is no single controlling authority which dictates the flow of information through the network.
 
     A centralized network is configured with a hierarchical structure and is controlled by a central authoritative computer. The central authority can directly connect to all other computers and control their function. In distributed computing, this central authority is called an \textit{orchestrator}. The orchestrator can employ the compute resources of the entire network to perform large parallel computation. The other computers in the network which perform the computation are called \textit{workers}. Since the application of this project's implementation is parallel learning, its focus will be on centralized networks, and we will refer to the the workers as \textit{learners}.
 
-    A centralized distributed computing network can be modelled mathematically using the notion of a network that was established in ~\autoref{sec:mathematical-description}. Denoting a collection of $n$ computers as $\mathbf{V} = (v_1, v_2, ..., v_n)$ with computation rates $\mathbf{R} = (r_1, r_2, ..., r_n)$ and price per processor-hour $\mathbf{P} = (p_1, p_2, ..., p_n)$, each $v_i$ can be thought of as a computer with a computation rate $r_i$ and a price to employ of $p_i$. In a \textit{heterogeneous} computer network, computational capacity and price of compute will vary from machine to machine.
+    A centralized distributed computing network can be modelled mathematically using the notion of a network that was established in ~\autoref{sec:optimization-problem-description}. Denoting a collection of $n$ computers as $\mathbf{V} = (v_1, v_2, ..., v_n)$ with computation rates $\mathbf{R} = (r_1, r_2, ..., r_n)$ and price per processor-hour $\mathbf{P} = (p_1, p_2, ..., p_n)$, each $v_i$ can be thought of as a computer with a computation rate $r_i$ and a price to employ of $p_i$. In a \textit{heterogeneous} computer network, computational capacity and price of compute will vary from machine to machine.
 
-    The structure of the distributed computing network is represented as the directed graph $\mathbf{G} = (\mathbf{V}, \mathbf{A})$. Because in a centralized network only the orchestrator can command processing power from the other computers, the adjacency matrix $\mathbf{A}$ is zero-valued for any edge which does not connect to the orchestrator node. In other words, there are no connections between any two computers that are not the orchestrator for the purposes of distributed computing. This feature is in addition to the other assumptions made for $\mathbf{A}$ in~\autoref{sec:mathematical-description}.
+    The structure of the distributed computing network is represented as the directed graph $\mathbf{G} = (\mathbf{V}, \mathbf{A})$. Because in a centralized network only the orchestrator can command processing power from the other computers, the adjacency matrix $\mathbf{A}$ is zero-valued for any edge which does not connect to the orchestrator node. In other words, there are no connections between any two computers that are not the orchestrator for the purposes of distributed computing. This feature is in addition to the other assumptions made for $\mathbf{A}$ in~\autoref{sec:optimization-problem-description}.
 
     When the orchestrator uses the network to compute in parallel, it is deploying a job denoted $J = (f,D)$ which consists of a function $f$ to be computed on a dataset $D \subseteq \mathbb{X}$. Here $\mathbb{X}$ is the infinite set of all possible input datasets. The orchestrator deploys a partition of $D$ to each employed worker along with copies of the work function $f$ for computation. The workers each return their computed results to the orchestrator, and these are the constituents of the result set $Y$.
 
@@ -30,39 +30,16 @@
 
     By modelling the distributed computing network with the mathematical definition for a network, the run time and cost can be defined using the \textit{completion time} and \textit{resource price} functions, respectively. Given a job $J = (f,D)$ which is to be sent to the network and computed in parallel, one can minimize these functions regarding all variations of partitions of $D$ and their allocations to workers. If this is done before making use of the network, jobs can then be deployed strategically to minimize for these values and maximize the network's efficiency.
     
-    
-    
     \section{Contemporary Optimization}
     \label{sec:contemporary-optimization}
 
-    A review of contemporary optimization problem classifications are identified below, so as to provide context for the optimization problem as stated in the problem description. (TODO: Insert ref)
+    A review of contemporary optimization problem classifications are identified below, so as to provide context for the optimization problem as stated in the problem description, \autoref{sec:optimization-problem-description}
 
-    \subsection{Convex Optimization}
-    \label{ssec:convex-optimization}
-
-    \subsubsection{Linear Programming}
-    \label{sssec:linear-programming}
     
-        Linear programming is a mathematical modelling technique in which a linear function (called the \textit{objective function}) of the \textit{decision variable} $x$ is maximized or minimized within the bounds of varying linear constraints on $x$, represented as either equalities or inequalities~\cite{the_editors_of_encyclopaedia_britannica_2017}. The definitive trait of a linear programming model is that all relationships - in both the objective function and constraints - are linear, i.e. the decision variable $x$ is not raised to any power besides 1.
-        
-        The solution to a linear programming problem is the most optimal value for the decision variable to minimize the objective function expression, while maintaining the validity of the constraint expressions.
-        
-        Linear programming problems are a subclass of convex optimization problems. A convex optimization problem is simply any optimization problem in which the objective function and constraints are \textit{convex}~\cite{boyd_vandenberghe_2009}, i.e., for any function $f(x)$ which is the objective function or a constraint of the model, 
-        
-        \[ f(\alpha x + \beta y) \leq \alpha f(x) + \beta f(y) \]
-    
-    \subsubsection{Integer Linear Programming}
-    
-    %TODO: Switch constrained optimization to first, since it is the bigger class of problems.
-    
-    \label{sssec:integer-linear-programming}
-
-        An integer linear program is a linear programming problem which is further constrained by an integrality restriction on the decision variable~\cite{integer_programming}. That is, each element $x_i$ of $x$ is such that $x_i \in \mathbb{Z}$. In the case of a maximization problem, the optimum value for the linear program free of the integrality constraint is an upper bound on the optimum value for the integer linear program. Likewise, any integer value which satisfies the constraints is a lower bound on the linear program optimum.
-
     \subsection{Constrained Optimization}
     \label{ssec:constrained-optimization}
 
-    A constrained optimization problem is an optimization problem in which the objective function $f$ must be minimized subject to \textit{hard constraints} $g_i$ and $h_j$, for $i=1,...,n$ and $j=1,...,m$.
+    A constrained optimization problem is an optimization problem in which the objective function $f$ must be maximized or minimized subject to \textit{hard constraints} $g_i$ and $h_j$, for $i=1,...,n$ and $j=1,...,m$.
     \[ \min \ f(\mathbf{x}) \]
     subject to
     \begin{align*}
@@ -70,8 +47,32 @@
         h_j(\mathbf{x}) &\geq d_j & &\text{for} \ j = 1,...,m \ \textit{inequality constraints}. \\
     \end{align*}
 
-    jot notes:
-    - write out explicitly what our objective function and (in)equality constraints are
-    - demonstrate that our objective function is linear in $\mathbf{x}$
+    \subsection{Convex Optimization}
+    \label{ssec:convex-optimization}
+    
+    Convex optimization problems are a subclass of constrained optimization problems. A convex optimization problem is simply an optimization problem in which the objective function and constraints are \textit{convex}~\cite{boyd_vandenberghe_2009}, i.e., for any objective function or constraint $f(\mathbf{x})$, 
+        
+        \[ f(\alpha \mathbf{x} + \beta \mathbf{y}) \leq \alpha f(\mathbf{x}) + \beta f(\mathbf{y}) \]
+        
+    In general, constrained optimization is NP-hard, however many classes of convex optimization problems can be solved using algorithms which operate in polynomial time.
+    
+    \subsubsection{Linear Programming}
+    \label{sssec:linear-programming}
+    
+    Linear programming is a mathematical modelling technique in which the objective function and constraints are linear functions, i.e. the decision variable $\mathbf{x}$ is not raised to any power besides 1~\cite{the_editors_of_encyclopaedia_britannica_2017}. Linear programming problems are a subclass of convex optimization problems.
+    
+    \subsubsection{Integer Linear Programming}
+    
+    \label{sssec:integer-linear-programming}
+
+        An integer linear program (ILP) is a linear programming problem which is further constrained by an integrality restriction on the decision variables~\cite{integer_programming}. That is, each element $x_i$ of $\mathbf{x}$ is such that $x_i \in \mathbb{Z}$. ILP problems are non-convex and NP-complete, making them much more difficult to solve.
+        
+        
+        The naive way to solve ILP problems is to perform LP-relaxation, and solve the problem without obeying the integrality constraint, before rounding the solution back to an integer. Though this can work, it can also produce suboptimal or even infeasible solutions.
+        
+        Other ways to solve ILP problems include using exact algorithms such as cutting-plane or branch-and-cut techniques, or formulating heuristic processes. Heuristic methods are necessary for intractable problems, but can be disadvantageous in that if they fail to find a solution, it cannot be known whether it is because there is no feasible one, or if it simply couldn't find one.
+        
+        Mixed integer linear programming or mixed integer programming (MIP) is the class of problems where some, but not necessarily all decision variables are restricted to integrality. The tools and methods for solving MIP problems are generally used on ILP problems since they are a subset of MIP problems. For that reason MIP and ILP may be used interchangeably in the later discussions of optimization method efficacy, but the meaning is the same.
+
 
 \end{document}

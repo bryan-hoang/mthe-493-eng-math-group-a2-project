@@ -1,7 +1,7 @@
 \providecommand{\main}{..}
 \documentclass[../mthe-493-final-project.tex]{subfiles}
 
-%Technical introduction. Describe design problem setup and constraints.
+% Technical introduction. Describe design problem setup and constraints.
 
 \begin{document}
     \chapter{Problem Description}
@@ -10,18 +10,14 @@
     \section{Distributed Computing}
     \label{sec:distributed-computing-problem-description}
 
-    % TODO: This was copied from proposal report. Should revise for concision and/or only include application stuff that is strictly related to the above description.
-    % TODO: Should explain what $D$, $f$ $\mathbf{M}$, $T$ (and $\tau$?) are in the context of federated learning.
+    \todo{This was copied from proposal report. Should revise for concision and/or only include application stuff that is strictly related to the above description.}
+    \todo{Should explain what $D$, $f$ $\mathbf{M}$, $T$ (and $\tau$?) are in the context of federated learning.}
     % ***
-    % TODO: split this section into it's background content \& it's specific problem description content
+    \todo{Split this section into it's background content \& it's specific problem description content}
 
     \textit{Distributed computing} is the technique of linking multiple computers together to form a network for sharing data and coordinating processing power. A computer network can be configured in either a \textit{decentralized} or \textit{centralized} way. In a decentralized network, all computers can connect and communicate with each other. There is no single controlling authority which dictates the flow of information through the network.
 
-    A centralized network is configured with a hierarchical structure and is controlled by a central authoritative computer. The central authority can directly connect to all other computers and control their function. In distributed computing, this central authority is called an \textit{orchestrator}. The orchestrator can employ the compute resources of the entire network to perform large parallel computation. The other computers in the network which perform the computation are called \textit{workers}. Since the application of this project's implementation is parallel learning, its focus will be on centralized networks.
-
-    A centralized distributed computing network can be modelled mathematically using the notion of a network that was established in ~\autoref{sec:mathematical-description}. Denoting a collection of $n$ computers as $\mathbf{V} = (v_1, v_2, ..., v_n)$ with computation rates $\mathbf{R} = (r_1, r_2, ..., r_n)$ and price per processor-hour $\mathbf{P} = (p_1, p_2, ..., p_n)$, each $v_i$ can be thought of as a computer with a computation rate $r_i$ and a price to employ of $p_i$. In a \textit{heterogeneous} computer network, computational capacity and price of compute will vary from machine to machine.
-
-    The structure of the distributed computing network is represented as the directed graph $\mathbf{G} = (\mathbf{V}, \mathbf{A})$. Because in a centralized network only the orchestrator can command processing power from the other computers, the adjacency matrix $\mathbf{A}$ is zero-valued for any edge which does not connect to the orchestrator node. In other words, there are no connections between any two computers that are not the orchestrator for the purposes of distributed computing. This feature is in addition to the other assumptions made for $\mathbf{A}$ in~\autoref{sec:mathematical-description}.
+    A centralized network is configured with a hierarchical structure and is controlled by a central authoritative computer. The central authority can directly connect to all other computers and control their function. In distributed computing, this central authority is called an \textit{orchestrator}. The orchestrator can employ the compute resources of the entire network to perform large parallel computation. The other computers in the network which perform the computation are called \textit{learners}. Since the application of this project's implementation is parallel learning, its focus will be on centralized networks.
 
     When the orchestrator uses the network to compute in parallel, it is deploying a job denoted $J = (f,D)$ which consists of a function $f$ to be computed on a dataset $D \subseteq \mathbb{X}$. Here $\mathbb{X}$ is the infinite set of all possible input datasets. The orchestrator deploys a partition of $D$ to each employed worker along with copies of the work function $f$ for computation. The workers each return their computed results to the orchestrator, and these are the constituents of the result set $Y$.
 
@@ -47,7 +43,7 @@
     The orchestrator employs a set of \textit{learners} $\mathbf{L} = \{l_1, ..., l_k\}$, $\vert\mathbf{L}\vert = k$. Each learner has the following properties:
     
     \begin{itemize}
-        \item A \textit{cost} $c_i$, that the learner charges in exchange for computing a single batch of data, $d_i$. We define $c = \{c_1,...,c_k\}$ as the set of all learner costs. 
+        \item A \textit{cost} $c_i$, that the learner charges in exchange for computing a single batch of data, $d_i$.
         \item A rate of computation $r_i$, which describes the learner's computational capability in batches of data per second.
     \end{itemize}
     
@@ -55,7 +51,7 @@
     
     \[\bigcup\limits_{i=1}^k D_i = D \textrm{\qquad and \qquad} \bigcap\limits_{i=1}^k D_i = \emptyset\]
 
-    The set of \textit{slice sizes} of $\boldsymbol{D}$ is then defined $X = \{x_1,...,x_k\}$ where
+    The set of \textit{slice sizes} of $\boldsymbol{D}$ is then defined $\mathbf{x} = \{x_1,...,x_k\}$ where
     
     \[x_i = \vert D_i \vert \textrm{ for } i = 1,...,k \textrm{\qquad and \qquad} \sum_{i=1}^k x_i = n\]
     
@@ -65,9 +61,9 @@
 
     \begin{itemize}
         \item The total time to compute job $J$ is no greater than the upper bound on training time, $T$. That is, each worker must compute their subjob within $T$ units of time.
-        \item \textit{Maximum assigned work}, $s^{max}_i = r_i \times T$, is the maximum quantity of batches (or maximumum slice size) that can be assigned to and executed by $l_i$ within training time $T$. Because workers are assumed to be heterogeneous and each have a unique compute capability $r_i$, this quantity will differ for each worker and work function. The value of $r_i$ cannot generally be known with certainty, but modelling in a later section (TODO: Insert ref) will provide a method for estimating $s_i^{max}$. We define $s^{max} = {s_1^{max},...,s_k^{max}}$ as the set of all learner's maximum assigned work.
-        \item \textit{Minimum assigned work}, $s^{min}$, sets the minimum number of batches (or minimum slice size) that must be assigned to any worker receiving non-zero batches; i.e. a worker must be assigned \textit{at least} $s^{min}$ slices, or 0 otherwise. This ensures that workers do not compute too few slices to be effective in an application like parallel learning. (TODO: Citation)
-        \item \textit{Minimum worker assignment}, $\beta$, sets the minimum number of workers which must be assigned work, i.e.,
+        \item \textit{Maximum assigned work}, $s^{max}_i = r_i \times T$, is the maximum quantity of batches (or maximumum slice size) that can be assigned to and executed by $l_i$ within training time $T$. Because learners are assumed to be heterogeneous and each have a unique compute capability $r_i$, this quantity will differ for each learner and work function. The value of $r_i$ cannot generally be known with certainty, but modelling in a later section~\todo{Insert ref} will provide a method for estimating $s_i^{max}$.
+        \item \textit{Minimum assigned work}, $s^{min}$, sets the minimum number of batches (or minimum slice size) that must be assigned to any learner receiving non-zero batches; i.e. a learner must be assigned \textit{at least} $s^{min}$ batches, or 0 otherwise. This ensures that learners do not compute too little data to be effective in an application like parallel learning~\todo{Citation}.
+        \item \textit{Minimum learner assignment}, $\beta$, sets the minimum number of learners which must be assigned batches of data, i.e.,
               \[\beta \leq \vert \{x_i : x_i > 0\} \vert \leq k\]
         This ensures sufficient fulfillment of the goal to parallelize the the machine learning application.
     \end{itemize}
@@ -93,7 +89,9 @@
     \subsection{Optimization Problem Simplification}
     \label{ssec:optimization-problem-simplification}
     
-     Due to the semi-continuity of the slice-size variable $x$ \eqref{eq:optimization-constraint-1}, as well as the implications of the positivity of $x$ \eqref{eq:optimization-constraint-3}, there are some steps that will be taken to simplify the optimization problem from how it has been defined thus far. This will help when it comes time to produce a solution. We can exploit the known upper and lower bounds to set a linear constraint despite the semi-continuity of $x$, as well as model the implication of the positivity of $x$~\cite{9_mixed_integer_optimization_mosek_modeling_cookbook_3.2.3_2021}. Making a set of binary variables $Z = \{z_1,...,z_k\}$ where
+     Due to the semi-continuity of the slice-size variable \mathbf{x} \eqref{eq:optimization-constraint-1}, as well as the implications of the positivity of $\mathbf{x}$ \eqref{eq:optimization-constraint-3}, there are some steps that will be taken to simplify the optimization problem from how it has been defined thus far. This will help when it comes time to produce a solution.
+     
+     We can exploit the known upper and lower bounds to set a linear constraint despite the semi-continuity of \mathbf{x}, as well as model the implication of the positivity of $\mathbf{x}$~\cite{9_mixed_integer_optimization_mosek_modeling_cookbook_3.2.3_2021}. Making a set of binary variables $\mathbf{z} = \{z_1,...,z_k\}$ where
      
     \[z_i =
         \begin{cases}
@@ -105,14 +103,14 @@
      we can replace constraint \eqref{eq:optimization-constraint-1} as the double linear inequality:
      
      \begin{equation}
-        \label{eq:simplified-optimization-constraint-1}
-         s^{min}Z \leq X \leq s^{max}Z, \qquad z_i \in \{0,1\}
+        % \label{eq:simplified-optimization-constraint-1}
+         s^{min}z_i \leq x_i \leq s_i^{max}z_i, \qquad z_i \in \{0,1\}
      \end{equation}
      
-     Indeed, since we must have $x_i < s_i^{max}$, then $x_i > 0$ mandates $z_i = 1$, and since $x_i = 0$ implies $x_i < s^{min}$, then $x_i = 0$ requires $z_i = 0$. Indeed $Z$ effectively models the positivity of $X$ and thus we can also replace \eqref{eq:optimization-constraint-3} as
+     Indeed, since we must have $x_i < s_i^{max}$, having $x_i > 0$ mandates $z_i = 1$, and since $x_i = 0$ implies $x_i < s^{min}$, then $x_i = 0$ requires $z_i = 0$. Thus $\mathbf{z}$ does indeed effectively model the positivity of $\mathbf{x}$ and so we can also replace \eqref{eq:optimization-constraint-3} as
      
      \begin{equation}
-         \label{eq:simplified-optimization-constraint-3}
+        %  \label{eq:simplified-optimization-constraint-3}
          \beta \leq \sum_{i = 1}^k z_i
      \end{equation}
     
@@ -120,7 +118,7 @@
     
     \begin{equation}
         \label{eq:optimization-objective-function-simplified}
-        \textrm{minimize} \qquad c^TX
+        \min_{x_i \in \mathbb{Z}_{\geq 0}} \ \sum_{i=1}^k x_i c_i
     \end{equation}
     % \[  \]
 
@@ -128,9 +126,11 @@
 
     \begin{align}
         s^{min}z_i \leq x_i \leq s^{max}z_i, \qquad i=1,...,k \label{eq:simplified-optimization-constraint-1} \\
-        \sum_{i = 1}^k x_i = n \label{eq:optimization-constraint-2} \qquad \qquad \qquad\\
+        \sum_{i = 1}^k x_i = n \label{eq:simplified-optimization-constraint-2} \qquad \qquad \qquad\\
         \beta \leq \sum_{i = 1}^k z_i \label{eq:simplified-optimization-constraint-3} \qquad \qquad \qquad
     \end{align}
+
+    The problem falls into the class of ILP problems (and into the greater class of MIP problems) since the objective function and constraints are linear and the decision variables are restricted to integrality. Appropriate methods to solving such a problem are explored later in \autoref{sec:optimization-engineering-tools}.
 
     \section{Parallel Learning}
     \label{sec:parallel-learning-problem-description}
