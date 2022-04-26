@@ -6,7 +6,9 @@ Main repo for MTHE 493 Group A2's documentation and source code. An implementati
 
 ## Getting started
 
-Note: The project dependencies target an environment that is a 32-bit ARM architecture (e.g., a raspberrypi) with python 3.9.
+For an overview of the project's architecture, refer to the [ARCHITECTURE.md](ARCHITECTURE.md).
+
+Note: The project dependencies target an environment that is a 64-bit ARM architecture (e.g., a raspberrypi) with python 3.9.
 
 To install necessary project dependencies, run
 
