@@ -1,0 +1,14 @@
+# Mirrors regular requirements
+-r requirements.txt
+
+bandit
+black
+flake8
+ipykernel
+pydocstyle
+pylint
+pytest
+pytest-asyncio
+
+# stuff to test data assignment (PuLP)
+pulp
