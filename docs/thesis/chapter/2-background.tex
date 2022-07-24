@@ -1,7 +1,7 @@
 \providecommand{\main}{..}
 \documentclass[../mthe-493-final-project.tex]{subfiles}
 
-%Background &/or literature review on 1. Math, 2. Distributed Computing, 3. Federated Learning.
+% Background &/or literature review on 1. Math, 2. Distributed Computing, 3. Federated Learning.
 
 \begin{document}
     \chapter{Background}
@@ -10,25 +10,9 @@
     \section{Distributed Computing}
     \label{sec:distributed-computing}
 
-    \todo{This was copied from proposal report. Should revise for concision and/or only include application stuff that is strictly related to the above description.}
-    \todo{Should explain what $D$, $f$ $\mathbf{M}$, $T$ (and $\tau$?) are in the context of federated learning.}
-    
-    ***
-    \todo{split this section into it's background content \& it's specific problem description content}
+    \textit{Distributed computing} is the technique of linking multiple computers together to form a network for sharing data and coordinating processing power. A computer network can be configured in either a \textit{decentralized} or \textit{centralized} way. In a decentralized network, all computers can connect and communicate with each other. There is no single controlling authority which dictates the flow of information through the network~\cite{noauthor_distributed_nodate}.
 
-    \textit{Distributed computing} is the technique of linking multiple computers together to form a network for sharing data and coordinating processing power. A computer network can be configured in either a \textit{decentralized} or \textit{centralized} way. In a decentralized network, all computers can connect and communicate with each other. There is no single controlling authority which dictates the flow of information through the network.
-
-    A centralized network is configured with a hierarchical structure and is controlled by a central authoritative computer. The central authority can directly connect to all other computers and control their function. In distributed computing, this central authority is called an \textit{orchestrator}. The orchestrator can employ the compute resources of the entire network to perform large parallel computation. The other computers in the network which perform the computation are called \textit{workers}. Since the application of this project's implementation is parallel learning, its focus will be on centralized networks, and we will refer to the the workers as \textit{learners}.
-
-    A centralized distributed computing network can be modelled mathematically using the notion of a network that was established in ~\autoref{sec:optimization-problem-description}. Denoting a collection of $n$ computers as $\mathbf{V} = (v_1, v_2, ..., v_n)$ with computation rates $\mathbf{R} = (r_1, r_2, ..., r_n)$ and price per processor-hour $\mathbf{P} = (p_1, p_2, ..., p_n)$, each $v_i$ can be thought of as a computer with a computation rate $r_i$ and a price to employ of $p_i$. In a \textit{heterogeneous} computer network, computational capacity and price of compute will vary from machine to machine.
-
-    The structure of the distributed computing network is represented as the directed graph $\mathbf{G} = (\mathbf{V}, \mathbf{A})$. Because in a centralized network only the orchestrator can command processing power from the other computers, the adjacency matrix $\mathbf{A}$ is zero-valued for any edge which does not connect to the orchestrator node. In other words, there are no connections between any two computers that are not the orchestrator for the purposes of distributed computing. This feature is in addition to the other assumptions made for $\mathbf{A}$ in~\autoref{sec:optimization-problem-description}.
-
-    When the orchestrator uses the network to compute in parallel, it is deploying a job denoted $J = (f,D)$ which consists of a function $f$ to be computed on a dataset $D \subseteq \mathbb{X}$. Here $\mathbb{X}$ is the infinite set of all possible input datasets. The orchestrator deploys a partition of $D$ to each employed worker along with copies of the work function $f$ for computation. The workers each return their computed results to the orchestrator, and these are the constituents of the result set $Y$.
-
-    In distributed computing, it is in the best interest of the network to maximize the number of jobs that can be sent over the network and minimize the price to use the network. Therefore, optimizing for low run-time and cost of computing is desirable.
-
-    By modelling the distributed computing network with the mathematical definition for a network, the run time and cost can be defined using the \textit{completion time} and \textit{resource price} functions, respectively. Given a job $J = (f,D)$ which is to be sent to the network and computed in parallel, one can minimize these functions regarding all variations of partitions of $D$ and their allocations to workers. If this is done before making use of the network, jobs can then be deployed strategically to minimize for these values and maximize the network's efficiency.
+    A centralized network is configured with a hierarchical structure and is controlled by a central authoritative computer. The central authority can directly connect to all other computers and control their function. In distributed computing, this central authority is called an \textit{orchestrator}. The orchestrator can employ the compute resources of the entire network to perform large parallel computation. The other computers in the network which perform the computation are called \textit{workers}. Since the application of this project's implementation is parallel learning, its focus will be on centralized networks, and we will refer to the the workers as \textit{learners}~\cite{yaqub_optimal_2020}.
     
     \section{Contemporary Optimization}
     \label{sec:contemporary-optimization}
@@ -74,5 +58,7 @@
         
         Mixed integer linear programming or mixed integer programming (MIP) is the class of problems where some, but not necessarily all decision variables are restricted to integrality. The tools and methods for solving MIP problems are generally used on ILP problems since they are a subset of MIP problems. For that reason MIP and ILP may be used interchangeably in the later discussions of optimization method efficacy, but the meaning is the same.
 
-
+    \section{Parallel Learning}
+    \label{sec:parallel-learning-bg}
+    In many of its applications like image recognition, forecasting, and clustering, \textit{Machine Learning } (ML) outperforms existing techniques. This has motivated the need to deploy computationally dense ML models on edge devices. One area of ML where substantial momentum has been gained is in \textit{Distributed Learning}. This is the method of training of a model by aggregating many local models which are trained on edge devices. \textit{Federated Learning} is a form distributed learning where data is stored on edge devices. In this case, the edge devices are typically where training data is collected, such as a sensor on a smartphone. The focus of this project will be \textit{Parallel Learning}, where data begins on a central orchestrator and distributes it to edge devices for training. Unlike in other forms of distributed learning, that is the extent of the edge device’s involvement.
 \end{document}

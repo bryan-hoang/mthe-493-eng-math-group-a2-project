@@ -217,9 +217,9 @@
     url = {https://github.com/bryan-hoang/mthe-493-group-a2}
 }
 
-@software{Mays_Benchmarking,
-    author = {Mays, Duncan},
-    title = {{Benchmarking Machines for Federated Learning}},
+@unpublished{mays_benchmark_nodate,
+	title = {Benchmark Based Task Allocation for Parallelized Mobile Edge Learning},
+	author = {Mays, Duncan},
 }
 
 %others
@@ -254,6 +254,21 @@
 	title   = {Root-mean-square deviation - Wikipedia},
 	url     = {https://en.wikipedia.org/wiki/Root-mean-square_deviation},
 	urldate = {2020-04-04},
+}
+
+@book{yaqub_optimal_2020,
+	title = {Optimal Task Allocation for Mobile Edge Learning with Global Training Time Constraints},
+	abstract = {This paper proposes to minimize the loss of training a distributed machine learning ({ML}) model on nodes or learners connected via the resource-constrained wireless edge network by jointly optimizing the number of local and global updates and the task size allocation. The optimization is done while taking into account heterogeneous communication and computation capabilities of each learner. It is shown that the problem of interest cannot be solved analytically but by leveraging existing bounds on the difference between the optimal loss and the loss at any given iteration, an expression for the objective function is derived as a function of the number of local updates. It is shown that the problem is convex and can be solved by finding the argument that minimizes the loss. The result is then used to determine the batch sizes for each learner for the next global update step. The merits of the proposed solution, which is heterogeneity aware ({HA}), are exhibited by comparing its performance to the heterogeneity unaware ({HU}) approach.},
+	author = {Yaqub, Umair and Sorour, Sameh and Hefeida, Mohamed},
+	date = {2020-06-12},
+}
+
+@online{noauthor_distributed_nodate,
+	title = {Distributed Systems 3rd edition (2017)},
+	url = {https://www.distributed-systems.net/index.php/books/ds3/},
+	abstract = {Get your free copy of Distributed Systems},
+	titleaddon = {{DISTRIBUTED}-{SYSTEMS}.{NET}},
+	langid = {american},
 }
 
 %edan refs
@@ -294,7 +309,7 @@
 
 @article{parallel-computing-biomedical-research,
   title={Parallel Computing in Biomedical Research},
-  author={Martino, Robert L., Calvin A. Johnson, Edward B. Suh, Benes L. Trus, and Tieng K. Yap},
+  author={Martino, Robert L.; Calvin A. Johnson; Edward B. Suh; Benes L. Trus; and Tieng K. Yap},
   journal={Science, 265},
   year={1994}
 }
@@ -320,3 +335,54 @@
   url = "https://kingsds.network/"
 }
 
+@article{FedAvg,
+  author    = {H. Brendan McMahan and
+               Eider Moore and
+               Daniel Ramage and
+               Blaise Ag{\"{u}}era y Arcas},
+  title     = {Federated Learning of Deep Networks using Model Averaging},
+  journal   = {CoRR},
+  volume    = {abs/1602.05629},
+  year      = {2016},
+  url       = {http://arxiv.org/abs/1602.05629},
+  eprinttype = {arXiv},
+  eprint    = {1602.05629},
+  timestamp = {Mon, 13 Aug 2018 16:48:01 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/McMahanMRA16.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{FedProx,
+  author    = {Anit Kumar Sahu and
+               Tian Li and
+               Maziar Sanjabi and
+               Manzil Zaheer and
+               Ameet Talwalkar and
+               Virginia Smith},
+  title     = {On the Convergence of Federated Optimization in Heterogeneous Networks},
+  journal   = {CoRR},
+  volume    = {abs/1812.06127},
+  year      = {2018},
+  url       = {http://arxiv.org/abs/1812.06127},
+  eprinttype = {arXiv},
+  eprint    = {1812.06127},
+  timestamp = {Wed, 23 Dec 2020 09:35:18 +0100},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-1812-06127.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{q-FedAvg,
+  author    = {Tian Li and
+               Maziar Sanjabi and
+               Virginia Smith},
+  title     = {Fair Resource Allocation in Federated Learning},
+  journal   = {CoRR},
+  volume    = {abs/1905.10497},
+  year      = {2019},
+  url       = {http://arxiv.org/abs/1905.10497},
+  eprinttype = {arXiv},
+  eprint    = {1905.10497},
+  timestamp = {Wed, 23 Dec 2020 09:35:18 +0100},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-1905-10497.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}

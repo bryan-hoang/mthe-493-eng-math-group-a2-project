@@ -4,7 +4,15 @@
 % Conclusions & recommended applications and extensions of this project.
 
 \begin{document}
+
     \chapter{Conclusions \& Recommendations}
     \label{ch:conclusions-and-recommendations}
-    The heuristic model for solving the ILP problem of allocating data to learners was successful in matching the performance of an industry leading optimization solver. The heuristic is intended to be exact in its solution, so the parameters which create the edge cases where it does not find the global minimum need to be further examined to help improve the process to being completely exhaustive.
+    
+    The heuristic model for solving the MIP problem of allocating data to learners was successful in exceeding the run-time performance of an industry leading optimization solver, Gurobi. The heuristic algorithm met Gurobi in it's ability to provide optimal solutions; however, there is still room for improvement. System parameters that result edge case behaviour and suboptimal solutions for the heuristic algorithm need to be further examined and corrected for so that the optimality of data allocation can be guaranteed. Following this, the proof of the heuristic algorithm's optimality be developed.
+    
+    The project as a whole is still fundamentally limited in reaching its stated goal of ``Optimization of Data Allocation \textit{with Training Time Constraints}'' due to a lack of comprehensive benchmarking associated with network and orchestrator overhead. Whilst the learner computational benchmarks are generally reliable, the lack of modelling in other areas leads to a consistent overshoot of the system's maximum allotted running time.
+    
+    Our FedAvg implementation was highly successful in aggregating model parameters in our experimentation. Benchmarks from the original paper were performed with higher numbers of learners, but in our estimation, our results meet or exceed the expected performance.
+    
+    In the future, our implementation of FedAvg could be challenged further by complicating network architecture, selecting a more complex dataset, or simply increasing the number of learners.
 \end{document}

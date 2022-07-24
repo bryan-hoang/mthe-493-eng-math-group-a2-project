@@ -10,20 +10,13 @@
     \section{Distributed Computing}
     \label{sec:distributed-computing-problem-description}
 
-    \todo{This was copied from proposal report. Should revise for concision and/or only include application stuff that is strictly related to the above description.}
-    \todo{Should explain what $D$, $f$ $\mathbf{M}$, $T$ (and $\tau$?) are in the context of federated learning.}
-    % ***
-    \todo{Split this section into it's background content \& it's specific problem description content}
+    From the context of distributed computing, the problem beings with a computer on a network, called the orchestrator as mentioned in~\autoref{sec:distributed-computing}. The orchestrator needs a computational task on a set of data to be completed that can be parallelized, namely a training task in parallel learning that will be referred to as a job. Given the benefit of speeding up the overall computations through distributed computing, the orchestrator needs to complete the job in a set amount of time, the global training time constraint of the system~\cite{yaqub_optimal_2020}.
 
-    \textit{Distributed computing} is the technique of linking multiple computers together to form a network for sharing data and coordinating processing power. A computer network can be configured in either a \textit{decentralized} or \textit{centralized} way. In a decentralized network, all computers can connect and communicate with each other. There is no single controlling authority which dictates the flow of information through the network.
+    To lower the amount to time to complete the job, the orchestrator parallelizes the job by distributing the data and a task to computers on its network, namely learners. The learners, being edge devices representing consumer devices, naturally have different computational capabilities that affect the speed at which they can each complete the task on a subset of the data. So, the orchestrator will want to alter the amount of data allocated to each learner based on their computational capabilities to equalize the amount of time each learner spends working on the task.
+    
+    With that in mind, the orchestrator also has to consider that each learner has a cost of recruitment to do work that can also vary. Now the orchestrator is also aiming to minimize the overall cost it incurs by recruiting learners to do its work. But every learner needs to have some amount of data allocated to it, otherwise the parallel learning task will become less effective.
 
-    A centralized network is configured with a hierarchical structure and is controlled by a central authoritative computer. The central authority can directly connect to all other computers and control their function. In distributed computing, this central authority is called an \textit{orchestrator}. The orchestrator can employ the compute resources of the entire network to perform large parallel computation. The other computers in the network which perform the computation are called \textit{learners}. Since the application of this project's implementation is parallel learning, its focus will be on centralized networks.
-
-    When the orchestrator uses the network to compute in parallel, it is deploying a job denoted $J = (f,D)$ which consists of a function $f$ to be computed on a dataset $D \subseteq \mathbb{X}$. Here $\mathbb{X}$ is the infinite set of all possible input datasets. The orchestrator deploys a partition of $D$ to each employed worker along with copies of the work function $f$ for computation. The workers each return their computed results to the orchestrator, and these are the constituents of the result set $Y$.
-
-    In distributed computing, it is in the best interest of the network to maximize the number of jobs that can be sent over the network and minimize the price to use the network. Therefore, optimizing for low run-time and cost of computing is desirable.
-
-    By modelling the distributed computing network with the mathematical definition for a network, the run time and cost can be defined using the \textit{completion time} and \textit{resource price} functions, respectively. Given a job $J = (f,D)$ which is to be sent to the network and computed in parallel, one can minimize these functions regarding all variations of partitions of $D$ and their allocations to workers. If this is done before making use of the network, jobs can then be deployed strategically to minimize for these values and maximize the network's efficiency.
+    Thus, from the perspective of the orchestrator, the problem it is trying to solve is to distribute the job such that the overall run time falls below a global training time constraint while also trying to minimize the cost it incurs from having to pay the learners based on their recruitment cost and ensuring enough data is allocated to each learner. Therefore, the problem can be formulated as a mathematical optimization problem.
 
     \section{Optimization}
     \label{sec:optimization-problem-description}
@@ -60,9 +53,9 @@
     The goal of our system is to choose the partition $\boldsymbol{D}$ of $D$ such that the slice size of the subjob assigned to each unique learner minimizes the total cost to compute the job, subject to some constraints:
 
     \begin{itemize}
-        \item The total time to compute job $J$ is no greater than the upper bound on training time, $T$. That is, each worker must compute their subjob within $T$ units of time.
-        \item \textit{Maximum assigned work}, $s^{max}_i = r_i \times T$, is the maximum quantity of batches (or maximumum slice size) that can be assigned to and executed by $l_i$ within training time $T$. Because learners are assumed to be heterogeneous and each have a unique compute capability $r_i$, this quantity will differ for each learner and work function. The value of $r_i$ cannot generally be known with certainty, but modelling in a later section~\todo{Insert ref} will provide a method for estimating $s_i^{max}$.
-        \item \textit{Minimum assigned work}, $s^{min}$, sets the minimum number of batches (or minimum slice size) that must be assigned to any learner receiving non-zero batches; i.e. a learner must be assigned \textit{at least} $s^{min}$ batches, or 0 otherwise. This ensures that learners do not compute too little data to be effective in an application like parallel learning~\todo{Citation}.
+        \item The total time to compute job $J$ is no greater than the upper bound on training time, $T$. That is, each learner must compute their subjob within $T$ units of time.
+        \item \textit{Maximum assigned work}, $s^{max}_i = r_i \times T$, is the maximum quantity of batches (or maximum slice size) that can be assigned to and executed by $l_i$ within training time $T$. Because learners are assumed to be heterogeneous and each have a unique compute capability $r_i$, this quantity will differ for each learner and work function. The value of $r_i$ cannot generally be known with certainty, but modelling in \autoref{ssec:benchmarking} will provide a method for estimating $s_i^{max}$.
+        \item \textit{Minimum assigned work}, $s^{min}$, sets the minimum number of batches (or minimum slice size) that must be assigned to any learner receiving non-zero batches; i.e. a learner must be assigned \textit{at least} $s^{min}$ batches, or 0 otherwise. This ensures that learners do not compute too little data to be effective in an application like parallel learning.
         \item \textit{Minimum learner assignment}, $\beta$, sets the minimum number of learners which must be assigned batches of data, i.e.,
               \[\beta \leq \vert \{x_i : x_i > 0\} \vert \leq k\]
         This ensures sufficient fulfillment of the goal to parallelize the the machine learning application.
@@ -89,9 +82,9 @@
     \subsection{Optimization Problem Simplification}
     \label{ssec:optimization-problem-simplification}
     
-     Due to the semi-continuity of the slice-size variable \mathbf{x} \eqref{eq:optimization-constraint-1}, as well as the implications of the positivity of $\mathbf{x}$ \eqref{eq:optimization-constraint-3}, there are some steps that will be taken to simplify the optimization problem from how it has been defined thus far. This will help when it comes time to produce a solution.
+     Due to the semi-continuity of the slice-size variable $\mathbf{x}$ \eqref{eq:optimization-constraint-1}, as well as the implications of the positivity of $\mathbf{x}$ \eqref{eq:optimization-constraint-3}, there are some steps that will be taken to simplify the optimization problem from how it has been defined thus far. This will help when it comes time to produce a solution.
      
-     We can exploit the known upper and lower bounds to set a linear constraint despite the semi-continuity of \mathbf{x}, as well as model the implication of the positivity of $\mathbf{x}$~\cite{9_mixed_integer_optimization_mosek_modeling_cookbook_3.2.3_2021}. Making a set of binary variables $\mathbf{z} = \{z_1,...,z_k\}$ where
+     We can exploit the known upper and lower bounds to set a linear constraint despite the semi-continuity of $\mathbf{x}$, as well as model the implication of the positivity of $\mathbf{x}$~\cite{9_mixed_integer_optimization_mosek_modeling_cookbook_3.2.3_2021}. Making a set of binary variables $\mathbf{z} = \{z_1,...,z_k\}$ where
      
     \[z_i =
         \begin{cases}
@@ -134,6 +127,13 @@
 
     \section{Parallel Learning}
     \label{sec:parallel-learning-problem-description}
+    As mentioned in the background, the focus of this project’s distributed learning application is parallel learning. The edge devices, or learners as they will be referred to throughout the report, are responsible for nothing outside returning the results of local training computations. Training on learners turns into a vanilla machine learning problem as there are no considerations outside optimizing the local model for accuracy to contribute positively to the global model. For the purposes of our project, the machine learning problem will be simplified as much as possible as our focus is on the optimal partition of a dataset \& the optimal aggregation of many unique models.
 
+    In sticking with simplicity for the machine learning problem, the neural network architecture of choice for our project is \textit{MNIST 2NN} or a 3 layer fully connected network. For an activation function, we selected \textit{ReLu}, and to normalize class predictions, \textit{softmax} was used. This all came from the paper we modelled our aggregation technique after and will be discussed more later in the report. The dataset of choice was \textit{MNIST or Modified National Institute of Standards and Technology}. It consists of 28x28 images of handwritten digits, zero through nine. There are 60 000 training and 10 000 testing images all containing 784 pixels. 
     
+    When attempting to optimally configure a distributed computing network for parallel learning, one must consider two important variables, network costs and computational capabilities. When there are differences in the network costs and computational capabilities of edge devices, this creates what’s called system heterogeneity. System heterogeneity makes creating an optimal configuration substantially more difficult. If heterogeneity is not addressed, distributed learning performance is limited by its weakest edge or slowest connection. There are two conventional approaches to circumvent heterogeneity. One can either vary the volume of data sent to each edge or vary the number of local training iterations performed on each edge. The latter is often less accurate due to a discrepancy created in edge gradients that is referred to as 'staleness'. Based upon the scope of the assigned problem, only the volume of data will be varied as staleness was identified as a non-factor.
+    
+    The notion of combining the work of many learners sounds like an easy task, but due to the complexity of neural networks, reaching convergence is made substantially more difficult. Each learner receives an entirely unique slice of the dataset, so every model’s set of unique parameters must be considered when computing each global update. As the volume of data to learners differs, an added challenge of prioritizing learner model parameters is created.
+    
+    To summarize, this portion of the problem is to optimally aggregate local learner models into a highly accurate global model.
 \end{document}

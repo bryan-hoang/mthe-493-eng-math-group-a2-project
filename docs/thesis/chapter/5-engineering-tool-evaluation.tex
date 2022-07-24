@@ -1,7 +1,7 @@
 \providecommand{\main}{..}
 \documentclass[../mthe-493-final-project.tex]{subfiles}
 
-%Tool identification & evaluation. Lay out all the "eng tools" we considered for a given section & make a case for each one. Determine which tools will be used too. Implementation and usage of selected tools in the next chapter
+% Tool identification & evaluation. Lay out all the "eng tools" we considered for a given section & make a case for each one. Determine which tools will be used too. Implementation and usage of selected tools in the next chapter
 \begin{document}
     \chapter{Engineering Tools}
     \label{ch:engineering-tools}
@@ -138,26 +138,22 @@
     \label{ssec:optimization-tool-selection}
     
     The evaluation results from \autoref{ssec:optimization-tool-evaluation} are summarized in \autoref{tab:optimization-tool-summary}.
-    
-    \begin{center}
     \begin{table}
-    \begin{tabular}{| c || c c c c c |}
-        \hline
-        Candidate & Efficacy & Running Time & Development & Privacy & Cost \\ [0.5ex] 
-        \hline\hline
-        SciPy & Infeasible & N/A & Easy & Great & Free \\ 
-        \hline
-        PuLP & Optimal & Slow & Medium & Adequate & Free \\
-        \hline
-        Gurobi & Optimal & Fast & Easy & Poor & Proprietary \\
-        \hline
-        \textbf{Heuristic} & \textbf{Feasible} & \textbf{Varies} & \textbf{Hard} & \textbf{Great} & \textbf{Free} \\
-        \hline
-    \end{tabular}
-    \caption{\label{tab:optimization-tool-summary}Summary of optimization solver candidate performance}
+        \begin{tabular}{| c || c c c c c |}
+            \hline
+            Candidate & Efficacy & Running Time & Development & Privacy & Cost \\ [0.5ex] 
+            \hline\hline
+            SciPy & Infeasible & N/A & Easy & Great & Free \\ 
+            \hline
+            PuLP & Optimal & Slow & Medium & Adequate & Free \\
+            \hline
+            Gurobi & Optimal & Fast & Easy & Poor & Proprietary \\
+            \hline
+            \textbf{Heuristic} & \textbf{Feasible} & \textbf{Varies} & \textbf{Hard} & \textbf{Great} & \textbf{Free} \\
+            \hline
+        \end{tabular}
+        \caption{\label{tab:optimization-tool-summary}Summary of optimization solver candidate performance}
     \end{table}
-    \end{center}
-    
     After evaluating the tools on the basis of the aforementioned criteria, SciPy was disqualified as a candidate because it does not meet the minimum efficacy criterion.
     
     PuLP was a strong candidate for all criteria except for running time. Because running time was identified as the second-most-important criterion, it was determined that PuLP will not be an effective optimization solver for the purposes of this project.
@@ -166,12 +162,29 @@
     
     To account for these risks, the runner-up candidate, Gurobi, will be developed in parallel to a heuristic algorithm. The Gurobi implementation will serve as an alternative to validate both the correctness of solutions and compare running time of the heuristic algorithm. In the event that an algorithm cannot be developed, or if the heuristic implementation is not as effective as the Gurobi implementation, the project will continue with the Gurobi implementation as the primary optimization solver.
     
-    % note for Jack: i just added these section headers as templates, feel free to change/get rid of them,  - jared
-    \section{Model Aggregation}
-    \label{sec:model-aggregation-engineering-tools}
+    \section{Parallel Learning}
+    \label{sec:parallel-learning-engineering-tools}
+    When approaching our parallel learning problem, much alike any other machine learning or deep learning problem, the best tools usually already exist. The field is booming with research and even in niche applications, it’s difficult to beat out the resources and personnel of FAANG research. With this in mind, the tools we’ll evaluate for our model aggregation problem will be three state of the art papers from Federated Learning. This is the area of distributed learning receiving the most research and thus the best model aggregation techniques come from federated papers as opposed to parallel papers.
+
+    The first paper is commonly known as FedAvg but was formally titled Communication Efficient Learning of Deep Networks from Decentralized Data by Google research. In the FedAvg paper, edge devices range from smartphones to laptops to surveillance cameras. The paper details much of the data collection and preparation associated with federated learning, but this is not of our concern. It’s the impressively simple yet sophisticated aggregation algorithm that motivated our evaluation of this paper. The FedAvg algorithm is detailed in figure.
+    \begin{figure}
+        \centering
+        \includegraphics[width=115mm,scale=0.35]{thesis/img/tool_eval_1.png}
+        \caption{FedAvg Network Communication}
+        \label{fig:FedAvg}
+    \end{figure}
+
+    It begins by selecting a random fraction of clients to receive the current global model from the central server. These chosen edge devices perform local training where it’s explicitly stipulated that stochastic gradient descent is used as an optimizer. After local training is completed, model parameters are uploaded to the central server for aggregation. The aggregation algorithm computes weights for each edge device based upon the size of the dataset that was used in training. With these weights, an update to the global model is calculated by taking a weighted average of all the local updates \cite{FedAvg}.
+
+    FedAvg represents the gold standard in model aggregation as this algorithm highly accurately mimics single device training. Further tool evaluation will only be performed to ensure that a niche version of FedAvg with edge case consideration favourable for this project doesn’t exist.
+    The next two papers represent exactly this, FedAvg spin offs with specific edge case considerations. To avoid egregious repetition, the basic central server and edge device set up remains more or less identical and the learners are all given weights based upon dataset size. 
     
-    \section{Machine Learning}
-    \label{sec:machine-learning-engineering-tools}
+    Next, we’ll look at FedProx or Federated Optimization in Heterogeneous Networks by Facebook research. In their own words it’s a “generalization and re-parametrization of FedAvg”. FedProx aims to tackle overfitting and offer expedited convergence. The difference in Facebook’s approach to FedProx is the introduction of a penalization system. Learners with the most drastic changes on a given local update will have their weight reduced to diminish their influence over the global update. FedProx’s main advantage over FedAvg comes in highly heterogeneous settings where it demonstrates more stable and accurate convergence \cite{FedProx}.
     
+    The final paper to be evaluated is q-FedAvg or Fair Resource Allocation in Federated Learning by Facebook AI \& CMU. q-FedAvg represents a combination of techniques from FedAvg and FedProx. This time the introduction of a penalization system takes aim at accuracy. Learners with lower ranking chosen accuracy metrics will have their weights reduced to diminish their influence of the subsequent global update. q-FedAvg’s main advantage over FedAvg comes in efficiency where the number of global cycles to convergence can be drastically reduced in optimal conditions \cite{q-FedAvg}.
     
+    The final area of tool evaluation for our parallel learning application is typical machine learning. However, as was stipulated in the problem description, this is not a machine learning based problem, but instead an optimization problem with model aggregation as the application. For this reason, things like network architecture, loss functions, optimizers, learning rates, \& more have all been kept constant \& we’ve avoided using training techniques like dropout, batch normalization, and data augmentation. This was all done in an attempt to standardize our results so the focus could fall on finding the optimal dataset partition \& aggregating model parameters. What this did for our experimental results was set a ceiling on how accurate the network could get when the challenge of model aggregation was non-existent.
+    
+    The only typical machine learning tool to be evaluated in our experimentation is weight initialization. This clearly has a direct impact on our problem as the first global update comes from local models trained from base weights and biases. The three initialization techniques that will be considered are known as xavier uniform, kaiming uniform [better known as ‘he initialization’], and orthogonal in PyTorch. Xavier and kaiming both represent bounded Gaussian distributions whereas orthogonal represents a technique where the resulting model is semi-orthogonal. They will be tested on our set of learners for an optimal initialization scheme specific to our project.
+
 \end{document}
