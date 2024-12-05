@@ -1,3 +1,7 @@
+# Created by https://www.toptal.com/developers/gitignore/api/latex
+# Edit at https://www.toptal.com/developers/gitignore?templates=latex
+
+### LaTeX ###
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
@@ -35,9 +39,9 @@
 ## Build tool auxiliary files:
 *.fdb_latexmk
 *.synctex
-*.synctex\(busy\)
+*.synctex(busy)
 *.synctex.gz
-*.synctex.gz\(busy\)
+*.synctex.gz(busy)
 *.pdfsync
 
 ## Build tool directories for auxiliary files
@@ -111,9 +115,16 @@ acs-*.bib
 *.glsdefs
 *.lzo
 *.lzs
+*.slg
+*.slo
+*.sls
 
 # uncomment this for glossaries-extra (will ignore makeindex's style files!)
 # *.ist
+
+# gnuplot
+*.gnuplot
+*.table
 
 # gnuplottex
 *-gnuplottex-*
@@ -189,6 +200,9 @@ _minted*
 # scrwfile
 *.wrt
 
+# svg
+svg-inkscape/
+
 # sympy
 *.sout
 *.sympy
@@ -212,6 +226,9 @@ pythontex-files-*/
 *.dpth
 *.md5
 *.auxlock
+
+# titletoc
+*.ptc
 
 # todonotes
 *.tdo
@@ -287,19 +304,11 @@ TSWLatexianTemp*
 # Uncomment the next line to have this generated file ignored.
 #*Notes.bib
 
-# Being primarily an overleaf project, let's ignore pdf files generated locally # for previewing changes.
-*.pdf
+### LaTeX Patch ###
+# LIPIcs / OASIcs
+*.vtc
 
-# Directory for latexindent cruft files
-tmp/
+# glossaries
+*.glstex
 
-# VS Code
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-*.code-workspace
-
-# Local History for Visual Studio Code
-.history/
+# End of https://www.toptal.com/developers/gitignore/api/latex
