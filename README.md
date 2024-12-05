@@ -1,4 +1,4 @@
-# mthe-493-group-a2
+# mthe-493-eng-math-group-a2-project
 
 > Optimization of Data Allocation with Training Time Constraints in Heterogeneous Edge Learning
 
